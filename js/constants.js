@@ -1,0 +1,53 @@
+// Heap
+export const MAX_HEAPS = 5;
+export const FIX_LIST_PASSIVE = 'passive';
+export const FIX_LIST_FREE_SINGLE = 'free_single';
+export const FIX_LIST_FREE_MULTIPLE = 'free_multiple';
+export const FIX_LIST_LOSS_ZERO = 'loss_zero';
+export const FIX_LIST_LOSS_ONE_SINGLE = 'loss_one_single';
+export const FIX_LIST_LOSS_ONE_MULTIPLE = 'loss_one_multiple';
+export const FIX_LIST_LOSS_TWO = 'loss_two';
+export const FIX_LIST_SECTIONS = [
+    FIX_LIST_PASSIVE,
+    FIX_LIST_FREE_MULTIPLE,
+    FIX_LIST_FREE_SINGLE,
+    FIX_LIST_LOSS_ZERO,
+    FIX_LIST_LOSS_ONE_MULTIPLE,
+    FIX_LIST_LOSS_ONE_SINGLE,
+    FIX_LIST_LOSS_TWO
+];
+
+// Heap rendering
+export const HEAP_PADDING = 40;
+export const BASIC_NODE_SEP = 25;
+export const BASIC_RANK_SEP = 25;
+export const BASIC_EDGE_SEP = 25;
+export const ADVANCED_NODE_SEP = 50;
+export const ADVANCED_RANK_SEP = 75;
+export const ADVANCED_EDGE_SEP = 50;
+export const MARGIN_X = 20;
+export const MARGIN_Y = 20;
+
+// Lists rendering
+export const LISTS_PADDING = 50;
+export const FIX_X = 50;
+export const BASIC_FIX_Y = 200;
+export const ADVANCED_FIX_Y = 300;
+export const RANK_X = 50;
+export const RANK_Y = 80;
+export const X_STEP = 150;
+
+// Node rendering
+export const NODE_SIZE = 70;
+export const NODE_PADDING = 10;
+export const MAX_FONT = 30;
+export const MIN_FONT = 2;
+
+// Drawer
+export const MIN_DRAWER_HEIGHT = 100;
+export const MAX_DRAWER_HEIGHT_OFFSET = 100;
+
+// DOM ids
+export const LISTS_CY_DOM = 'lists-cy';
+export const HEAP_CY_DOM = 'heap-cy';
+export const DRAWER_HANDLE_DOM = 'drawerHandle';

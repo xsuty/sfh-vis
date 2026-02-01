@@ -1,0 +1,6 @@
+node_modules
+.htmlhintrc
+.stylelintrc.json
+eslint.config.mjs
+package-lock.json
+package.json

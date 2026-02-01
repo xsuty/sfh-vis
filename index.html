@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Interactive Strict Fibonacci Heap Visualiser built with Vue.js and Cytoscape">
+    <title>SFH Visualiser</title>
+    <!-- Vendor libs (globals) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" defer></script>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js" defer></script>
+    <script src="https://unpkg.com/dagre@0.8.5/dist/dagre.min.js" defer></script>
+    <script src="https://unpkg.com/cytoscape-dagre/cytoscape-dagre.js" defer></script>
+    <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <!-- ===== Header ===== -->
+        <div class="header-bar">
+            <h1>Strict Fibonacci Heap Visualiser</h1>
+            <label>
+                <input type="checkbox" v-model="advancedView" />
+                Advanced View
+            </label>
+        </div>
+        <!-- ===== Status ===== -->
+        <div id="status" class="status">{{ statusText }}</div>
+        <!-- ===== Controls ===== -->
+        <div class="controls">
+            <input type="number" placeholder="New key to insert" v-model.number="inputValue" min="0" step="1" autocomplete="off" />
+            <button @click="insert" :disabled="!canInsert">Insert</button>
+            <button @click="removeMin" :disabled="!canDeleteMin">Delete-min</button>
+            <button @click="meldHeaps" :disabled="!canMeldHeaps">Meld Heaps</button>
+            <button @click="nextStep" :disabled="!stepping">Next step</button>
+            <button @click="skipSteps" :disabled="!stepping">Skip steps</button>
+        </div>
+        <!-- ===== Heap Tabs ===== -->
+        <div class="heap-tabs">
+            <button v-for="(heap, index) in heaps" :key="heap._heapId" :class="['tab-btn', heapTabClasses[index]]" @click="clickHeap(index)" :disabled="stepping">
+                Heap {{ heap._heapId }}
+            </button>
+            <button id="addHeap" @click="!stepping && !mergeState.mode && addHeap()" :disabled="heaps.length >= MAX_HEAPS || stepping || mergeState.mode">
+                + New Heap
+            </button>
+            <button id="deleteHeap" @click="!stepping && !mergeState.mode && deleteHeap(currentHeapIndex)" :disabled="stepping || mergeState.mode || heaps.length === 1">
+                Delete Heap
+            </button>
+        </div>
+        <!-- ===== Main Visualization ===== -->
+        <div class="main-vis-container">
+            <div id="stepLog" class="step-log">
+                <h3>Step Log</h3>
+                <div v-for="(log, i) in stepLogs" :style="logStyles[i]">{{ log.text }}</div>
+            </div>
+            <div id="heap-cy"></div>
+            <div id="legend" class="legend">
+                <div class="legend-item">
+                    <div class="legend-color red"></div> Fixed Node
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color green"></div> Free Node
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color blue"></div> Passive Node
+                </div>
+            </div>
+        </div>
+        <!-- ===== Drawer ===== -->
+        <div id="heapDrawer" :class="['drawer', drawerOpen ? 'open' : '']">
+            <div id="drawerHandle" class="drawer-handle"></div>
+            <button class="drawer-toggle" @click="drawerOpen = !drawerOpen">
+                {{ drawerOpen ? '▼ Hide Lists' : '▲ Show Lists' }}
+            </button>
+            <div class="drawer-content" v-show="drawerOpen">
+                <div id="lists-cy" :style="listsCyStyle"></div>
+            </div>
+        </div>
+        <!-- ===== Node Modal ===== -->
+        <div id="nodeModal" class="modal" v-show="nodeModalOpen">
+            <div class="modal-content">
+                <span id="close-modal" class="close" @click="nodeModalOpen = false">&times;</span>
+                <h3>Node Operations</h3>
+                <div class="operation">
+                    <label for="newKeyInput">Decrease Key:</label>
+                    <input id="newKeyInput" type="number" placeholder="New key" v-model.number="newKeyInput" min="0" step="1" autocomplete="off" />
+                    <button id="confirmDecreaseKey" :disabled="stepping" @click="decreaseKey(newKeyInput)">
+                        Update Key
+                    </button>
+                </div>
+                <hr />
+                <div class="operation">
+                    <label for="deleteNode">Delete Node:</label>
+                    <button id="deleteNode" class="delete-btn" :disabled="stepping" @click="deleteNode()">
+                        Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Main Vue app (module entry) -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
