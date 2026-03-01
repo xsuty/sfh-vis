@@ -277,7 +277,7 @@ function createFixList(advancedView, heap) {
 
 function createRankList(advancedView, heap) {
     const elements = [];
-    let r = heap._rank_list;
+    let r = heap._rankList;
     let j = 0;
 
     while (r) {
@@ -335,7 +335,7 @@ function linkLists(listsCy, fixNodes) {
         let cls = `cross-list ${dirClass}`;
 
         if (n._rank._free === n) cls += ' free';
-        if (n._rank._loss_one === n) cls += ' loss';
+        if (n._rank._lossOne === n) cls += ' loss';
 
         elements.push({
             data: {
@@ -429,5 +429,5 @@ function formatHeapNodeLabel(node, advanced) {
 
 function formatRankLabel(rankNode, advanced) {
     if (!advanced) return `r${rankNode._rank}`;
-    return `Rank: ${rankNode._rank}\nRefs: ${rankNode._ref_count}`;
+    return `Rank: ${rankNode._rank}\nRefs: ${rankNode._refCount}`;
 }

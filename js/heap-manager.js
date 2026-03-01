@@ -132,7 +132,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         if (heap.empty()) throw new Error('state inconsistency: should not be able to remove min from empty heap');
 
         console.log(`Removing min from heap ${heap._heapId}`);
-        const steps = heap.delete_min();
+        const steps = heap.deleteMin();
         stepsManager.startSteps(steps);
     }
 
@@ -146,7 +146,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         }
 
         console.log(`Decreasing key of node ${appState.selectedNode.value._key} to ${newKey} in heap ${heap._heapId}`);
-        const steps = heap.decrease_key(appState.selectedNode.value, newKey);
+        const steps = heap.decreaseKey(appState.selectedNode.value, newKey);
         stepsManager.startSteps(steps);
 
         appState.selectedNode.value = null;

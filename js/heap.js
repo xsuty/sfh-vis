@@ -17,15 +17,15 @@ export class Heap {
         this._active = true;
         this._size = 0;
         this._root = null;
-        this._rank_list = null;
+        this._rankList = null;
 
         this._passive = null;
-        this._free_multiple = null;
-        this._free_single = null;
-        this._loss_zero = null;
-        this._loss_one_multiple = null;
-        this._loss_one_single = null;
-        this._loss_two = null;
+        this._freeMultiple = null;
+        this._freeSingle = null;
+        this._lossZero = null;
+        this._lossOneMultiple = null;
+        this._lossOneSingle = null;
+        this._lossTwo = null;
     }
 
     gt(other) {
@@ -36,14 +36,14 @@ export class Heap {
         this._active = false;
         this._size = 0;
         this._root = null;
-        this._rank_list = null;
+        this._rankList = null;
         this._passive = null;
-        this._free_multiple = null;
-        this._free_single = null;
-        this._loss_zero = null;
-        this._loss_one_multiple = null;
-        this._loss_one_single = null;
-        this._loss_two = null;
+        this._freeMultiple = null;
+        this._freeSingle = null;
+        this._lossZero = null;
+        this._lossOneMultiple = null;
+        this._lossOneSingle = null;
+        this._lossTwo = null;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ export class Heap {
                 apply: () => {
                     const smallHead = smaller._root;
                     const smallTail = smallHead._prev;
-                    const largeHead = larger.fix_list_head();
+                    const largeHead = larger.fixListHead();
                     const largeTail = largeHead._prev;
                     smallHead._prev = largeTail;
                     largeTail._next = smallHead;
@@ -99,9 +99,9 @@ export class Heap {
             });
 
             steps.push(
-                ...larger.apply_reductions([
-                    larger.free_node_reduction,
-                    larger.root_degree_reduction
+                ...larger.applyReductions([
+                    larger.freeNodeReduction,
+                    larger.rootDegreeReduction
                 ])
             )
         } else if (larger._size === 0) {
@@ -152,9 +152,9 @@ export class Heap {
                     }]
                 }
             },
-            ...this.apply_reductions([
-                ...Array(3).fill(this.free_node_reduction),
-                ...Array(2).fill(this.root_degree_reduction)
+            ...this.applyReductions([
+                ...Array(3).fill(this.freeNodeReduction),
+                ...Array(2).fill(this.rootDegreeReduction)
             ])
         ];
     }
@@ -163,30 +163,30 @@ export class Heap {
         if (!node) throw new Error('Node is null');
 
         const steps = [];
-        const MIN_KEY = Number.NEGATIVE_INFINITY;
-        if (node._key !== MIN_KEY) {
+        const minKey = Number.NEGATIVE_INFINITY;
+        if (node._key !== minKey) {
             steps.push({
                 label: `Decrease key of node ${node._key} to negative infinity`,
                 nest: true,
-                apply: () => this.decrease_key(node, MIN_KEY)
+                apply: () => this.decreaseKey(node, minKey)
             });
         }
 
         steps.push({
             label: `Delete the new minimum node`,
             nest: true,
-            apply: () => this.delete_min()
+            apply: () => this.deleteMin()
         });
 
         return steps;
     }
 
-    delete_min() {
+    deleteMin() {
         if (!this._root) throw new Error('root is None');
 
         const z = this._root;
 
-        if (z._left_child === null) {
+        if (z._leftChild === null) {
             if (this._size !== 1) throw new Error('invalid heap size');
             return [{
                 label: `Retire the root node ${z._key}`,
@@ -200,7 +200,7 @@ export class Heap {
 
         const steps = [];
 
-        let x = z.children().reduce((minNode, node) => node._key < minNode._key ? node : minNode, z._left_child);
+        let x = z.children().reduce((minNode, node) => node._key < minNode._key ? node : minNode, z._leftChild);
 
         if (x.fixed()) {
             steps.push({
@@ -222,8 +222,8 @@ export class Heap {
             }
         });
 
-        function free_children(heap) {
-            const c = z._left_child;
+        function freeChildren(heap) {
+            const c = z._leftChild;
             if (c === null) return [];
             const subSteps = [];
             subSteps.push({
@@ -255,14 +255,14 @@ export class Heap {
                 silent: true,
                 apply: () => [...subSteps, {
                     silent: true,
-                    apply: () => free_children(heap)
+                    apply: () => freeChildren(heap)
                 }]
             }];
         }
 
         steps.push({
             silent: true,
-            apply: () => free_children(this)
+            apply: () => freeChildren(this)
         });
 
         steps.push({
@@ -285,11 +285,11 @@ export class Heap {
             steps.push({
                 label: `Passive reduction`,
                 nest: true,
-                apply: () => this.passive_reduction()
+                apply: () => this.passiveReduction()
             });
         }
 
-        function reduce_while_possible(heap, reductions) {
+        function reduceWhilePossible(heap, reductions) {
             for (let i = 0; i < reductions.length; i++) {
                 const r = reductions[i];
                 const {
@@ -301,7 +301,7 @@ export class Heap {
                         ...rSteps,
                         {
                             silent: true,
-                            apply: () => reduce_while_possible(heap, reductions)
+                            apply: () => reduceWhilePossible(heap, reductions)
                         }
                     ];
                 }
@@ -313,8 +313,8 @@ export class Heap {
             silent: true,
             apply: () => {
                 return [
-                    ...reduce_while_possible(this, [this.one_node_loss_reduction, this.two_node_loss_reduction]),
-                    ...reduce_while_possible(this, [this.free_node_reduction, this.root_degree_reduction])
+                    ...reduceWhilePossible(this, [this.oneNodeLossReduction, this.twoNodeLossReduction]),
+                    ...reduceWhilePossible(this, [this.freeNodeReduction, this.rootDegreeReduction])
                 ]
             }
         })
@@ -322,21 +322,21 @@ export class Heap {
         return steps;
     }
 
-    decrease_key(node, new_key) {
-        if (!(new_key < node._key)) throw new Error('new_key not smaller');
+    decreaseKey(node, newKey) {
+        if (!(newKey < node._key)) throw new Error('newKey not smaller');
 
         const steps = [];
 
         steps.push({
-            label: `Decrease key of node ${node._key} to ${new_key}`,
+            label: `Decrease key of node ${node._key} to ${newKey}`,
             nest: true,
             apply: () => {
-                node._key = new_key;
+                node._key = newKey;
                 return [];
             }
         });
 
-        if (node === this._root || new_key > node._parent._key) return steps;
+        if (node === this._root || newKey > node._parent._key) return steps;
 
         if (node.fixed()) {
             steps.push({
@@ -375,21 +375,21 @@ export class Heap {
                 const {
                     steps: subSteps,
                     applied
-                } = this.two_node_loss_reduction();
+                } = this.twoNodeLossReduction();
                 if (applied) {
                     return subSteps;
                 }
                 const {
                     steps: subSteps2
-                } = this.one_node_loss_reduction();
+                } = this.oneNodeLossReduction();
                 return subSteps2;
             }
         });
 
         steps.push(
-            ...this.apply_reductions([
-                ...Array(6).fill(this.free_node_reduction.bind(this)),
-                ...Array(4).fill(this.root_degree_reduction.bind(this)),
+            ...this.applyReductions([
+                ...Array(6).fill(this.freeNodeReduction.bind(this)),
+                ...Array(4).fill(this.rootDegreeReduction.bind(this)),
             ])
         )
 
@@ -409,8 +409,8 @@ export class Heap {
 
         node._parent = null;
 
-        if (parent && parent._left_child === node) {
-            parent._left_child = right !== node ? right : null;
+        if (parent && parent._leftChild === node) {
+            parent._leftChild = right !== node ? right : null;
         }
 
         if (right !== node) {
@@ -421,8 +421,8 @@ export class Heap {
         }
 
         if (parent && node.fixed() && parent.active()) {
-            parent.decrease_rank();
-            if (parent.fixed()) parent.increase_loss();
+            parent.decreaseRank();
+            if (parent.fixed()) parent.increaseLoss();
         }
     }
 
@@ -444,7 +444,7 @@ export class Heap {
         steps.push({
             label: `Add node ${y._key} as child of ${x._key}`,
             apply: () => {
-                x.add_child(y);
+                x.addChild(y);
                 return [];
             }
         });
@@ -455,13 +455,13 @@ export class Heap {
         };
     }
 
-    free_node_reduction() {
-        if (this._free_multiple === null) return {
+    freeNodeReduction() {
+        if (this._freeMultiple === null) return {
             steps: [],
             applied: false
         };
 
-        let x = this._free_multiple;
+        let x = this._freeMultiple;
         let y = x._next;
 
         if (x === y) throw new Error('invalid free_multiple');
@@ -488,8 +488,8 @@ export class Heap {
         steps.push({
             label: `Add node ${y._key} as child of ${x._key}`,
             apply: () => {
-                x.add_child(y);
-                const z = x._left_child._left;
+                x.addChild(y);
+                const z = x._leftChild._left;
                 if (z.passive()) {
                     return [{
                         label: `Link passive node ${z._key} to root`,
@@ -516,14 +516,14 @@ export class Heap {
         };
     }
 
-    root_degree_reduction() {
+    rootDegreeReduction() {
         if (!this._root) throw new Error('root is None');
-        if (!this._root._left_child) return {
+        if (!this._root._leftChild) return {
             steps: [],
             applied: false
         };
 
-        let x = this._root._left_child._left;
+        let x = this._root._leftChild._left;
         let y = x._left;
         let z = y._left;
 
@@ -623,7 +623,7 @@ export class Heap {
             label: `Add node ${z._key} as child of root`,
             nest: true,
             apply: () => {
-                this._root.add_child(z);
+                this._root.addChild(z);
                 return [];
             }
         });
@@ -631,7 +631,7 @@ export class Heap {
             label: `Add node ${y._key} as child of ${z._key}`,
             nest: true,
             apply: () => {
-                z.add_child(y);
+                z.addChild(y);
                 return [];
             }
         });
@@ -639,7 +639,7 @@ export class Heap {
             label: `Add node ${x._key} as child of ${y._key}`,
             nest: true,
             apply: () => {
-                y.add_child(x);
+                y.addChild(x);
                 return [];
             }
         });
@@ -654,8 +654,8 @@ export class Heap {
         };
     }
 
-    one_node_loss_reduction() {
-        const x = this._loss_two;
+    oneNodeLossReduction() {
+        const x = this._lossTwo;
 
         if (x === null) {
             return {
@@ -678,8 +678,8 @@ export class Heap {
         };
     }
 
-    two_node_loss_reduction() {
-        let x = this._loss_one_multiple;
+    twoNodeLossReduction() {
+        let x = this._lossOneMultiple;
         if (x === null) return {
             steps: [],
             applied: false
@@ -701,21 +701,21 @@ export class Heap {
         steps.push({
             label: `Decrease loss of node ${x._key}`,
             apply: () => {
-                x.decrease_loss();
+                x.decreaseLoss();
             }
         });
         steps.push({
             label: `Decrease loss of node ${y._key}`,
             apply: () => {
-                y.decrease_loss();
+                y.decreaseLoss();
             }
         });
 
         steps.push({
             label: `Add node ${y._key} as child of ${x._key}`,
             apply: () => {
-                x.add_child(y);
-                const z = x._left_child._left;
+                x.addChild(y);
+                const z = x._leftChild._left;
                 if (z.passive()) {
                     return [{
                         label: `Link passive node ${z._key} to root`,
@@ -742,7 +742,7 @@ export class Heap {
         };
     }
 
-    passive_reduction(count = 0) {
+    passiveReduction(count = 0) {
         if (count >= 3 || this._passive === null) return [];
 
         const n = this._passive;
@@ -752,13 +752,13 @@ export class Heap {
             apply: () => {
                 const steps = []
                 n.passive2free(this)
-                steps.push(...this.passive_reduction(count + 1));
+                steps.push(...this.passiveReduction(count + 1));
                 return steps;
             }
         }];
     }
 
-    apply_reductions(reductions) {
+    applyReductions(reductions) {
         return [{
             silent: true,
             apply: () => {
@@ -772,7 +772,7 @@ export class Heap {
                         const remaining = reductions.slice(0, i).concat(reductions.slice(i + 1));
                         return [
                             ...steps,
-                            ...this.apply_reductions(remaining)
+                            ...this.applyReductions(remaining)
                         ];
                     }
                 }
@@ -789,15 +789,15 @@ export class Heap {
         return this._size === 0;
     }
 
-    rank_zero() {
-        if (this._rank_list === null) {
-            this._rank_list = new Rank(0, this);
+    rankZero() {
+        if (this._rankList === null) {
+            this._rankList = new Rank(0, this);
         }
-        this._rank_list.increase_refs();
-        return this._rank_list;
+        this._rankList.increaseRefs();
+        return this._rankList;
     }
 
-    fix_list_head() {
+    fixListHead() {
         for (const section of Heap.FIX_LIST_SECTIONS) {
             const node = this[section];
             if (node !== null) {
@@ -822,17 +822,17 @@ class Node {
         this._left = this;
         this._right = this;
         this._parent = null;
-        this._left_child = null;
+        this._leftChild = null;
 
         this._free = true;
         this._loss = 0;
 
-        this._rank = heap.rank_zero();
+        this._rank = heap.rankZero();
 
         this._prev = this;
         this._next = this;
 
-        this.fix_list_add();
+        this.fixListAdd();
     }
 
     gt(other) {
@@ -843,12 +843,12 @@ class Node {
         if (!heap._active) throw new Error('heap not active');
         if (!(this.passive() || this.heap() === heap)) throw new Error('wrong heap');
         if (this._parent !== null) throw new Error('parent not null');
-        if (this._left_child !== null) throw new Error('has children');
+        if (this._leftChild !== null) throw new Error('has children');
         if (!(this._left === this && this._right === this)) throw new Error('links broken');
 
-        this.fix_list_remove(heap);
+        this.fixListRemove(heap);
         heap._size -= 1;
-        this._rank.reduce_refs();
+        this._rank.reduceRefs();
         this._rank = null;
     }
 
@@ -882,9 +882,9 @@ class Node {
 
     children() {
         const out = [];
-        if (this._left_child === null) return out;
+        if (this._leftChild === null) return out;
 
-        let c = this._left_child;
+        let c = this._leftChild;
         const first = c;
         while (true) {
             out.push(c);
@@ -935,30 +935,30 @@ class Node {
     //                       Operation methods                        //
     ////////////////////////////////////////////////////////////////////
 
-    add_child(child) {
+    addChild(child) {
         child._parent = this;
 
-        if (this._left_child === null) {
-            this._left_child = child;
+        if (this._leftChild === null) {
+            this._leftChild = child;
         } else {
-            child._right = this._left_child;
+            child._right = this._leftChild;
             child._left = child._right._left;
             child._right._left = child;
             child._left._right = child;
-            if (child.active()) this._left_child = child;
+            if (child.active()) this._leftChild = child;
         }
 
         if (this.active() && child.fixed()) {
-            this.increase_rank();
+            this.increaseRank();
         }
     }
 
     passive2free(heap) {
         if (!this.passive()) throw new Error('not passive');
 
-        this.fix_list_remove(heap);
-        this._rank.reduce_refs();
-        this._rank = heap.rank_zero();
+        this.fixListRemove(heap);
+        this._rank.reduceRefs();
+        this._rank = heap.rankZero();
 
         this._fixed = false;
         this._free = true;
@@ -968,20 +968,20 @@ class Node {
             this.heap().link(this, this._parent);
         }
 
-        this.fix_list_add();
+        this.fixListAdd();
     }
 
     free2fixed() {
         if (!this.free()) throw new Error('not free');
 
-        this.fix_list_remove(this.heap());
+        this.fixListRemove(this.heap());
         this._free = false;
         this._fixed = true;
         this._loss = 0;
-        this.fix_list_add();
+        this.fixListAdd();
 
         if (this._parent && this._parent.active()) {
-            this._parent.increase_rank();
+            this._parent.increaseRank();
         }
     }
 
@@ -991,136 +991,136 @@ class Node {
         const parent = this._parent;
         if (!parent || !parent.active()) throw new Error('bad parent');
 
-        this.fix_list_remove(this.heap());
+        this.fixListRemove(this.heap());
         this._free = true;
         this._fixed = false;
         this._loss = 0;
-        this.fix_list_add();
+        this.fixListAdd();
 
-        parent.decrease_rank();
-        if (parent.fixed()) parent.increase_loss();
+        parent.decreaseRank();
+        if (parent.fixed()) parent.increaseLoss();
     }
 
     ////////////////////////////////////////////////////////////////////
     //                       Fix-list methods                         //
     ////////////////////////////////////////////////////////////////////
 
-    fix_list_attach(section) {
+    fixListAttach(section) {
         const heap = this.heap();
         var head = heap[section];
         heap[section] = this;
-        if (head === null) head = this.get_next_section(section);
-        head.add_prev(this);
+        if (head === null) head = this.getNextSection(section);
+        head.addPrev(this);
     }
 
-    fix_list_detach() {
+    fixListDetach() {
         this._prev._next = this._next;
         this._next._prev = this._prev;
         this._prev = this;
         this._next = this;
     }
 
-    fix_list_add() {
+    fixListAdd() {
         if (this.free()) {
-            this.add_free();
+            this.addFree();
         } else if (this.fixed()) {
-            this.add_fixed();
+            this.addFixed();
         }
     }
 
-    fix_list_remove(heap) {
+    fixListRemove(heap) {
         if (this.passive()) {
-            this.remove_passive(heap);
+            this.removePassive(heap);
         } else if (this.free()) {
-            this.remove_free(heap);
+            this.removeFree(heap);
         } else {
-            this.remove_fixed(heap);
+            this.removeFixed(heap);
         }
-        this.fix_list_detach(heap);
+        this.fixListDetach(heap);
     }
 
-    fix_list_same_group(other) {
+    fixListSameGroup(other) {
         return (this.free() && other.free() && this._rank === other._rank) ||
             (this.fixed() && other.fixed() && this._loss === 1 && other._loss === 1 && this._rank === other._rank);
     }
 
-    fix_list_group() {
+    fixListGroup() {
         var count = 1;
-        const head = this.heap().fix_list_head();
+        const head = this.heap().fixListHead();
         var first, last;
         first = last = this;
-        while (count < 3 && first !== head && this.fix_list_same_group(first._prev)) {
+        while (count < 3 && first !== head && this.fixListSameGroup(first._prev)) {
             first = first._prev;
             count += 1;
         }
-        while (count < 3 && last._next !== head && this.fix_list_same_group(last._next)) {
+        while (count < 3 && last._next !== head && this.fixListSameGroup(last._next)) {
             last = last._next;
             count += 1;
         }
         return { first, count };
     }
 
-    add_free() {
+    addFree() {
         if (!this.free()) throw new Error('not free');
         const heap = this.heap();
         const free = this._rank._free;
         if (free === null) {
             this._rank._free = this;
-            this.fix_list_attach(FIX_LIST_FREE_SINGLE);
+            this.fixListAttach(FIX_LIST_FREE_SINGLE);
         } else {
-            const { count: count } = free.fix_list_group();
+            const { count: count } = free.fixListGroup();
             const succ = free._next;
             if (count >= 2) {
-                succ.add_prev(this);
+                succ.addPrev(this);
             } else {
-                if (heap._free_single === free) {
+                if (heap._freeSingle === free) {
                     if (succ !== free && succ.free()) {
-                        heap._free_single = succ;
+                        heap._freeSingle = succ;
                     } else {
-                        heap._free_single = null;
+                        heap._freeSingle = null;
                     }
                 }
-                free.fix_list_detach(heap);
-                this.fix_list_attach(FIX_LIST_FREE_MULTIPLE);
-                free.fix_list_attach(FIX_LIST_FREE_MULTIPLE);
+                free.fixListDetach(heap);
+                this.fixListAttach(FIX_LIST_FREE_MULTIPLE);
+                free.fixListAttach(FIX_LIST_FREE_MULTIPLE);
             }
         }
     }
 
-    add_fixed() {
+    addFixed() {
         if (!this.fixed()) throw new Error('not fixed');
         const heap = this.heap();
         if (this._loss === 0) {
-            this.fix_list_attach(FIX_LIST_LOSS_ZERO);
+            this.fixListAttach(FIX_LIST_LOSS_ZERO);
         } else if (this._loss === 1) {
-            const loss_one = this._rank._loss_one;
-            if (loss_one === null) {
-                this._rank._loss_one = this;
-                this.fix_list_attach(FIX_LIST_LOSS_ONE_SINGLE);
+            const lossOne = this._rank._lossOne;
+            if (lossOne === null) {
+                this._rank._lossOne = this;
+                this.fixListAttach(FIX_LIST_LOSS_ONE_SINGLE);
             } else {
-                const { count: count } = loss_one.fix_list_group();
-                const succ = loss_one._next;
+                const { count: count } = lossOne.fixListGroup();
+                const succ = lossOne._next;
                 if (count >= 2) {
-                    succ.add_prev(this);
+                    succ.addPrev(this);
                 } else {
-                    if (heap._loss_one_single === loss_one) {
-                        if (succ !== loss_one && succ.fixed() && succ._loss === 1) {
-                            heap._loss_one_single = succ;
+                    if (heap._lossOneSingle === lossOne) {
+                        if (succ !== lossOne && succ.fixed() && succ._loss === 1) {
+                            heap._lossOneSingle = succ;
                         } else {
-                            heap._loss_one_single = null;
+                            heap._lossOneSingle = null;
                         }
                     }
-                    loss_one.fix_list_detach(heap);
-                    this.fix_list_attach(FIX_LIST_LOSS_ONE_MULTIPLE);
-                    loss_one.fix_list_attach(FIX_LIST_LOSS_ONE_MULTIPLE);
+                    lossOne.fixListDetach(heap);
+                    this.fixListAttach(FIX_LIST_LOSS_ONE_MULTIPLE);
+                    lossOne.fixListAttach(FIX_LIST_LOSS_ONE_MULTIPLE);
                 }
             }
         } else {
-            this.fix_list_attach(FIX_LIST_LOSS_TWO);
+            this.fixListAttach(FIX_LIST_LOSS_TWO);
         }
     }
 
-    remove_passive(heap) {
+    removePassive(heap) {
         if (!this.passive()) throw new Error('not passive');
         const succ = this._next;
         if (heap._passive === this) {
@@ -1132,101 +1132,101 @@ class Node {
         }
     }
 
-    remove_free(heap) {
+    removeFree(heap) {
         if (!this.free()) throw new Error('not free');
         const succ = this._next;
         const free = this._rank._free;
         if (free === this) {
-            this.reassign_rank_free();
+            this.reassignRankFree();
         }
-        const { first, count } = this.fix_list_group();
+        const { first, count } = this.fixListGroup();
         if (count === 1) {
-            if (heap._free_single === this) {
+            if (heap._freeSingle === this) {
                 if (succ !== this && succ.free()) {
-                    heap._free_single = succ;
+                    heap._freeSingle = succ;
                 } else {
-                    heap._free_single = null;
+                    heap._freeSingle = null;
                 }
             }
         } else if (count === 2) {
             const other = first === this ? this._next : first;
-            if (heap._free_multiple === first) {
-                const next_group_first = first._next._next
+            if (heap._freeMultiple === first) {
+                const nextGroupFirst = first._next._next
                 if (
-                    next_group_first !== first &&
-                    next_group_first.free() &&
-                    next_group_first._next !== first &&
-                    next_group_first._next.free() &&
-                    next_group_first._rank === next_group_first._next._rank
+                    nextGroupFirst !== first &&
+                    nextGroupFirst.free() &&
+                    nextGroupFirst._next !== first &&
+                    nextGroupFirst._next.free() &&
+                    nextGroupFirst._rank === nextGroupFirst._next._rank
                 ) {
-                    heap._free_multiple = next_group_first;
+                    heap._freeMultiple = nextGroupFirst;
                 } else {
-                    heap._free_multiple = null;
+                    heap._freeMultiple = null;
                 }
             }
-            other.fix_list_detach(heap);
-            other.fix_list_attach(FIX_LIST_FREE_SINGLE);
-        } else if (heap._free_multiple === this) {
-            heap._free_multiple = succ;
+            other.fixListDetach(heap);
+            other.fixListAttach(FIX_LIST_FREE_SINGLE);
+        } else if (heap._freeMultiple === this) {
+            heap._freeMultiple = succ;
         }
     }
 
-    remove_fixed(heap) {
+    removeFixed(heap) {
         if (!this.fixed()) throw new Error('not fixed');
         const succ = this._next;
         if (this._loss === 0) {
-            if (heap._loss_zero === this) {
+            if (heap._lossZero === this) {
                 if (succ !== this && succ.fixed() && succ._loss === 0) {
-                    heap._loss_zero = succ;
+                    heap._lossZero = succ;
                 } else {
-                    heap._loss_zero = null;
+                    heap._lossZero = null;
                 }
             }
         } else if (this._loss === 1) {
-            const loss_one = this._rank._loss_one;
-            if (loss_one === this) {
-                this.reassign_rank_loss_one();
+            const lossOne = this._rank._lossOne;
+            if (lossOne === this) {
+                this.reassignRankLossOne();
             }
-            const { first, count } = this.fix_list_group();
+            const { first, count } = this.fixListGroup();
             if (count === 1) {
-                if (heap._loss_one_single === this) {
+                if (heap._lossOneSingle === this) {
                     if (succ !== this && succ.fixed() && succ._loss === 1) {
-                        heap._loss_one_single = succ;
+                        heap._lossOneSingle = succ;
                     } else {
-                        heap._loss_one_single = null;
+                        heap._lossOneSingle = null;
                     }
                 }
             } else if (count === 2) {
                 const other = first === this ? this._next : first;
-                if (heap._loss_one_multiple === first) {
-                    const next_group_first = first._next._next
+                if (heap._lossOneMultiple === first) {
+                    const nextGroupFirst = first._next._next
                     if (
-                        next_group_first !== first &&
-                        next_group_first.fixed() && next_group_first._loss === 1 &&
-                        next_group_first._next !== first &&
-                        next_group_first._next.fixed() && next_group_first._next._loss === 1 &&
-                        next_group_first._rank === next_group_first._next._rank
+                        nextGroupFirst !== first &&
+                        nextGroupFirst.fixed() && nextGroupFirst._loss === 1 &&
+                        nextGroupFirst._next !== first &&
+                        nextGroupFirst._next.fixed() && nextGroupFirst._next._loss === 1 &&
+                        nextGroupFirst._rank === nextGroupFirst._next._rank
                     ) {
-                        heap._loss_one_multiple = next_group_first;
+                        heap._lossOneMultiple = nextGroupFirst;
                     } else {
-                        heap._loss_one_multiple = null;
+                        heap._lossOneMultiple = null;
                     }
                 }
-                other.fix_list_detach(heap);
-                other.fix_list_attach(FIX_LIST_LOSS_ONE_SINGLE);
-            } else if (heap._loss_one_multiple === this) {
-                heap._loss_one_multiple = succ;
+                other.fixListDetach(heap);
+                other.fixListAttach(FIX_LIST_LOSS_ONE_SINGLE);
+            } else if (heap._lossOneMultiple === this) {
+                heap._lossOneMultiple = succ;
             }
         } else {
             if (succ !== this && succ.fixed() && succ._loss === 2) {
-                heap._loss_two = succ;
+                heap._lossTwo = succ;
             } else {
-                heap._loss_two = null;
+                heap._lossTwo = null;
             }
         }
     }
 
-    reassign_rank_field(fieldName, predicate) {
+    reassignRankField(fieldName, predicate) {
         if (this._rank == null) {
             throw new Error("rank is null");
         }
@@ -1239,27 +1239,27 @@ class Node {
         }
     }
 
-    reassign_rank_free() {
-        this.reassign_rank_field("_free", s => s.free());
+    reassignRankFree() {
+        this.reassignRankField("_free", s => s.free());
     }
 
-    reassign_rank_loss_one() {
-        this.reassign_rank_field("_loss_one", s => s.fixed() && s._loss === 1);
+    reassignRankLossOne() {
+        this.reassignRankField("_lossOne", s => s.fixed() && s._loss === 1);
     }
 
-    add_prev(node) {
+    addPrev(node) {
         node._next = this;
         node._prev = this._prev;
         this._prev._next = node;
         this._prev = node;
     }
 
-    get_next_section(current) {
+    getNextSection(current) {
         if (!Heap.FIX_LIST_SECTIONS.includes(current)) throw new Error('invalid section');
         const list = Heap.FIX_LIST_SECTIONS;
-        const start_idx = (list.indexOf(current) + 1) % list.length;
+        const startIdx = (list.indexOf(current) + 1) % list.length;
         for (let i = 0; i < list.length; i++) {
-            const idx = (start_idx + i) % list.length;
+            const idx = (startIdx + i) % list.length;
             const value = this.heap()[list[idx]];
             if (value !== null) {
                 return value;
@@ -1268,40 +1268,40 @@ class Node {
         return null;
     }
 
-    change_rank(newRank) {
+    changeRank(newRank) {
         if (this._rank === null) throw new Error('current rank is None');
-        this.fix_list_remove(this.heap());
-        this._rank.reduce_refs();
+        this.fixListRemove(this.heap());
+        this._rank.reduceRefs();
         this._rank = newRank;
-        this._rank.increase_refs();
-        this.fix_list_add();
+        this._rank.increaseRefs();
+        this.fixListAdd();
     }
 
-    decrease_rank() {
-        this.change_rank(this._rank.prev());
+    decreaseRank() {
+        this.changeRank(this._rank.prev());
     }
 
-    increase_rank() {
-        this.change_rank(this._rank.next());
+    increaseRank() {
+        this.changeRank(this._rank.next());
     }
 
-    change_loss(change) {
-        this.fix_list_remove(this.heap());
+    changeLoss(change) {
+        this.fixListRemove(this.heap());
         this._loss += change;
-        this.fix_list_add();
+        this.fixListAdd();
     }
 
-    decrease_loss() {
-        this.fix_list_remove(this.heap());
+    decreaseLoss() {
+        this.fixListRemove(this.heap());
         this._loss -= 1;
-        this.fix_list_add();
+        this.fixListAdd();
     }
 
-    increase_loss() {
+    increaseLoss() {
         if (this._loss < 2) {
-            this.fix_list_remove(this.heap());
+            this.fixListRemove(this.heap());
             this._loss += 1;
-            this.fix_list_add();
+            this.fixListAdd();
         }
     }
 }
@@ -1317,18 +1317,18 @@ class Rank {
         this._inc = null;
         this._heap = heap;
 
-        this._ref_count = 0;
+        this._refCount = 0;
         this._free = null;
-        this._loss_one = null;
+        this._lossOne = null;
     }
 
     retire() {
         if (this._heap === null) throw new Error('heap is None');
-        if (this._ref_count !== 0) throw new Error('ref_count not zero');
+        if (this._refCount !== 0) throw new Error('refCount not zero');
         if (this._heap._active && this._free !== null) throw new Error(`free is not null: ${this._free._key}`);
-        if (this._heap._active && this._loss_one !== null) throw new Error('loss_one is not null');
+        if (this._heap._active && this._lossOne !== null) throw new Error('lossOne is not null');
 
-        if (this._heap._rank_list === this) this._heap._rank_list = this._inc;
+        if (this._heap._rankList === this) this._heap._rankList = this._inc;
         if (this._dec !== null) this._dec._inc = this._inc;
         if (this._inc !== null) this._inc._dec = this._dec;
 
@@ -1336,46 +1336,44 @@ class Rank {
         this._inc = null;
         this._heap = null;
         this._free = null;
-        this._loss_one = null;
+        this._lossOne = null;
         this._rank = null;
     }
 
-    reduce_refs() {
-        if (this._ref_count <= 0) throw new Error('ref_count underflow');
-        this._ref_count -= 1;
+    reduceRefs() {
+        if (this._refCount <= 0) throw new Error('refCount underflow');
+        this._refCount -= 1;
 
-        if (this._ref_count === 0) {
+        if (this._refCount === 0) {
             this.retire();
         }
     }
 
-    increase_refs() {
-        this._ref_count += 1;
+    increaseRefs() {
+        this._refCount += 1;
     }
 
     next() {
-        if (this._inc === null || this._inc._rank > this._rank + 1) this.add_new_rank();
+        if (this._inc === null || this._inc._rank > this._rank + 1) {
+            new Rank(this._rank + 1, this._heap).insertAfter(this);
+        }
         return this._inc;
     }
 
     prev() {
         if (this._rank <= 0) throw new Error('no lower rank');
-        if (this._dec === null) {
-            this._dec = new Rank(this._rank - 1, this._heap);
-            this._dec._inc = this;
-            this._heap._rank_list = this._dec;
-        } else if (this._dec._rank < this._rank - 1) this._dec.add_new_rank();
+        if (this._dec._rank < this._rank - 1) {
+            new Rank(this._rank - 1, this._heap).insertAfter(this._dec);
+        }
         return this._dec;
     }
 
-    add_new_rank() {
-        const new_rank = new Rank(this._rank + 1, this._heap);
-        if (this._inc !== null) {
-            if (this._inc._rank <= this._rank + 1) throw new Error('invalid inc rank');
-            this._inc._dec = new_rank;
-            new_rank._inc = this._inc;
+    insertAfter(prev) {
+        if (prev._inc !== null) {
+            prev._inc._dec = this;
         }
-        new_rank._dec = this;
-        this._inc = new_rank;
+        this._inc = prev._inc;
+        this._dec = prev;
+        prev._inc = this;
     }
 }
