@@ -11,7 +11,7 @@ export function getUIComputed(appState, heapManager, stepsManager) {
 
     const canInsert = computed(() => !heapManager.isBusy());
     const canDeleteMin = computed(() =>
-        !heapManager.isBusy() && appState.getCurrentHeap().size > 0
+        !heapManager.isBusy() && !appState.getCurrentHeap().empty()
     );
     const canMeldHeaps = computed(() =>
         !heapManager.isBusy() && appState.getHeapCount() > 1

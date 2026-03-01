@@ -61,12 +61,12 @@ export function renderHeap(appState, heapCy) {
 
     const heap = appState.getCurrentHeap();
     Object.keys(appState.nodesById).forEach(k => delete appState.nodesById[k]);
-    if (!heap.root) return;
+    if (!heap._root) return;
 
     const {
         nodes,
         edges
-    } = collectNodes(appState.advancedView, heap.root);
+    } = collectNodes(appState.advancedView, heap._root);
     const elements = [];
 
     for (const n of nodes) {
@@ -143,11 +143,11 @@ function collectNodes(advancedView, root) {
         nodes.push(node);
         const w = 1 / (siblingCount * 4);
         if (advancedView.value) {
-            const isSingle = node.left === node;
+            const isSingle = node._left === node;
             edges.push({
                 data: {
                     source: `n${node._id}`,
-                    target: `n${node.left._id}`,
+                    target: `n${node._left._id}`,
                     label: 'left',
                     displayOnly: true,
                     segmentWeight: w
@@ -157,7 +157,7 @@ function collectNodes(advancedView, root) {
             edges.push({
                 data: {
                     source: `n${node._id}`,
-                    target: `n${node.right._id}`,
+                    target: `n${node._right._id}`,
                     label: 'right',
                     displayOnly: true,
                     segmentWeight: w
@@ -236,14 +236,14 @@ function createFixList(advancedView, heap) {
                 grabbable: false
             });
 
-            const isSingle = curr.nxt === curr;
-            const isWrapNxt = curr.nxt === start;
+            const isSingle = curr._next === curr;
+            const isWrapNxt = curr._next === start;
             const isWrapPrev = curr === start;
 
             elements.push({
                 data: {
                     source: `fix-${curr._id}`,
-                    target: `fix-${curr.nxt._id}`,
+                    target: `fix-${curr._next._id}`,
                     label: advancedView.value ? 'next' : ''
                 },
                 classes: isSingle ? 'single-nxt' : isWrapNxt ? 'wrap wrap-nxt' : ''
@@ -252,14 +252,14 @@ function createFixList(advancedView, heap) {
             elements.push({
                 data: {
                     source: `fix-${curr._id}`,
-                    target: `fix-${curr.prev._id}`,
+                    target: `fix-${curr._prev._id}`,
                     label: advancedView.value ? 'prev' : ''
                 },
                 classes: isSingle ? 'single-prev' : isWrapPrev ? 'wrap wrap-prev' : ''
             });
 
             fixNodes.push(curr);
-            curr = curr.nxt;
+            curr = curr._next;
             i++;
         } while (curr !== start);
 
@@ -277,13 +277,13 @@ function createFixList(advancedView, heap) {
 
 function createRankList(advancedView, heap) {
     const elements = [];
-    let r = heap.rank_list;
+    let r = heap._rank_list;
     let j = 0;
 
     while (r) {
         elements.push({
             data: {
-                id: `rank-${r.rank}`,
+                id: `rank-${r._rank}`,
                 label: formatRankLabel(r, advancedView.value)
             },
             classes: 'rank',
@@ -294,22 +294,22 @@ function createRankList(advancedView, heap) {
             grabbable: false
         });
 
-        if (r.inc) elements.push({
+        if (r._inc) elements.push({
             data: {
-                source: `rank-${r.rank}`,
-                target: `rank-${r.inc.rank}`,
+                source: `rank-${r._rank}`,
+                target: `rank-${r._inc._rank}`,
                 label: advancedView.value ? 'inc' : ''
             }
         });
-        if (r.dec) elements.push({
+        if (r._dec) elements.push({
             data: {
-                source: `rank-${r.rank}`,
-                target: `rank-${r.dec.rank}`,
+                source: `rank-${r._rank}`,
+                target: `rank-${r._dec._rank}`,
                 label: advancedView.value ? 'dec' : ''
             }
         });
 
-        r = r.inc;
+        r = r._inc;
         j++;
     }
 
@@ -334,8 +334,8 @@ function linkLists(listsCy, fixNodes) {
 
         let cls = `cross-list ${dirClass}`;
 
-        if (n._rank.free === n) cls += ' free';
-        if (n._rank.loss_one === n) cls += ' loss';
+        if (n._rank._free === n) cls += ' free';
+        if (n._rank._loss_one === n) cls += ' loss';
 
         elements.push({
             data: {
@@ -424,10 +424,10 @@ function getFixSections(heap) {
 
 function formatHeapNodeLabel(node, advanced) {
     if (!advanced) return `${node._key}`;
-    return `Key: ${node._key}\nRank: ${node.rank()}\nLoss: ${node.loss}`;
+    return `Key: ${node._key}\nRank: ${node.rank()}\nLoss: ${node._loss}`;
 }
 
 function formatRankLabel(rankNode, advanced) {
-    if (!advanced) return `r${rankNode.rank}`;
-    return `Rank: ${rankNode.rank}\nRefs: ${rankNode.ref_count}`;
+    if (!advanced) return `r${rankNode._rank}`;
+    return `Rank: ${rankNode._rank}\nRefs: ${rankNode._ref_count}`;
 }
