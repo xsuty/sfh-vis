@@ -17,6 +17,10 @@ export function getUIComputed(appState, heapManager, stepsManager) {
         !heapManager.isBusy() && appState.getHeapCount() > 1
     );
 
+    const canExportHeap = computed(() =>
+        !heapManager.isBusy() && !appState.getCurrentHeap().empty()
+    );
+
     const heapTabClasses = computed(() =>
         appState.heaps.value.map((_, index) => ({
             active: appState.currentHeapIndex.value === index &&
@@ -44,6 +48,7 @@ export function getUIComputed(appState, heapManager, stepsManager) {
         canInsert,
         canDeleteMin,
         canMeldHeaps,
+        canExportHeap,
         heapTabClasses,
         logStyles,
         listsCyStyle

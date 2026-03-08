@@ -46,6 +46,13 @@
             <button id="deleteHeap" @click="!stepping && !mergeState.mode && deleteHeap(currentHeapIndex)" :disabled="stepping || mergeState.mode || heaps.length === 1">
                 Delete Heap
             </button>
+            <button id="exportHeap" @click="exportHeap()" :disabled="!canExportHeap">
+                Export Heap
+            </button>
+            <button id="importHeap" @click="triggerImportHeap()" :disabled="stepping || mergeState.mode">
+                Import Heap
+            </button>
+            <input type="file" id="importHeapFile" accept=".json" @change="handleImportFile" style="display: none;" />
         </div>
         <!-- ===== Main Visualization ===== -->
         <div class="main-vis-container">

@@ -789,6 +789,185 @@ export class Heap {
         return this._size === 0;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    //                      Serialization                             //
+    ////////////////////////////////////////////////////////////////////
+
+    serialize() {
+        // Collect all nodes
+        const nodes = [];
+        const nodeToId = new Map();
+        const rankToId = new Map();
+        
+        // Helper to traverse all nodes in the heap
+        const collectNodes = (node) => {
+            if (!node || nodeToId.has(node)) return;
+            nodeToId.set(node, nodes.length);
+            nodes.push(node);
+            
+            // Traverse children
+            if (node._leftChild) {
+                let child = node._leftChild;
+                const first = child;
+                do {
+                    collectNodes(child);
+                    child = child._right;
+                } while (child !== first);
+            }
+        };
+        
+        // Collect nodes from root
+        if (this._root) {
+            collectNodes(this._root);
+        }
+        
+        // Collect nodes from fix lists
+        for (const section of Heap.FIX_LIST_SECTIONS) {
+            const head = this[section];
+            if (head) {
+                let node = head;
+                const first = head;
+                do {
+                    collectNodes(node);
+                    node = node._next;
+                } while (node !== first);
+            }
+        }
+        
+        // Collect all ranks
+        const ranks = [];
+        if (this._rankList) {
+            let rank = this._rankList;
+            while (rank) {
+                rankToId.set(rank, ranks.length);
+                ranks.push({
+                    rank: rank._rank,
+                    refCount: rank._refCount
+                });
+                rank = rank._inc;
+            }
+        }
+        
+        // Serialize nodes
+        const serializedNodes = nodes.map(node => ({
+            id: node._id,
+            key: node._key,
+            free: node._free,
+            loss: node._loss,
+            rank: rankToId.get(node._rank),
+            left: nodeToId.has(node._left) ? nodeToId.get(node._left) : null,
+            right: nodeToId.has(node._right) ? nodeToId.get(node._right) : null,
+            parent: node._parent ? nodeToId.get(node._parent) : null,
+            leftChild: node._leftChild ? nodeToId.get(node._leftChild) : null,
+            prev: nodeToId.has(node._prev) ? nodeToId.get(node._prev) : null,
+            next: nodeToId.has(node._next) ? nodeToId.get(node._next) : null
+        }));
+        
+        return {
+            version: 1,
+            heapId: this._heapId,
+            active: this._active,
+            size: this._size,
+            root: this._root ? nodeToId.get(this._root) : null,
+            passive: this._passive ? nodeToId.get(this._passive) : null,
+            freeMultiple: this._freeMultiple ? nodeToId.get(this._freeMultiple) : null,
+            freeSingle: this._freeSingle ? nodeToId.get(this._freeSingle) : null,
+            lossZero: this._lossZero ? nodeToId.get(this._lossZero) : null,
+            lossOneMultiple: this._lossOneMultiple ? nodeToId.get(this._lossOneMultiple) : null,
+            lossOneSingle: this._lossOneSingle ? nodeToId.get(this._lossOneSingle) : null,
+            lossTwo: this._lossTwo ? nodeToId.get(this._lossTwo) : null,
+            nodes: serializedNodes,
+            ranks: ranks,
+            maxNodeId: Node._nextId || 0
+        };
+    }
+
+    static deserialize(data) {
+        if (data.version !== 1) {
+            throw new Error('Unsupported serialization version');
+        }
+        
+        const heap = new Heap();
+        heap._heapId = data.heapId;
+        heap._active = data.active;
+        heap._size = data.size;
+        
+        // Restore max node ID
+        Node._nextId = Math.max(Node._nextId || 0, data.maxNodeId);
+        
+        // Create rank list
+        const ranks = [];
+        for (let i = 0; i < data.ranks.length; i++) {
+            const rankData = data.ranks[i];
+            const rank = new Rank(rankData.rank, heap);
+            rank._refCount = rankData.refCount;
+            ranks.push(rank);
+            
+            // Link ranks
+            if (i > 0) {
+                rank.insertAfter(ranks[i - 1]);
+            }
+            
+            if (i === 0) {
+                heap._rankList = rank;
+            }
+        }
+        
+        // Create nodes without links
+        const nodes = [];
+        for (const nodeData of data.nodes) {
+            const node = Object.create(Node.prototype);
+            node._id = nodeData.id;
+            node._key = nodeData.key;
+            node._free = nodeData.free;
+            node._loss = nodeData.loss;
+            node._rank = ranks[nodeData.rank];
+            nodes.push(node);
+        }
+        
+        // Restore node links
+        for (let i = 0; i < data.nodes.length; i++) {
+            const nodeData = data.nodes[i];
+            const node = nodes[i];
+            
+            node._left = nodeData.left !== null ? nodes[nodeData.left] : node;
+            node._right = nodeData.right !== null ? nodes[nodeData.right] : node;
+            node._parent = nodeData.parent !== null ? nodes[nodeData.parent] : null;
+            node._leftChild = nodeData.leftChild !== null ? nodes[nodeData.leftChild] : null;
+            node._prev = nodeData.prev !== null ? nodes[nodeData.prev] : node;
+            node._next = nodeData.next !== null ? nodes[nodeData.next] : node;
+        }
+        
+        // Restore heap pointers
+        heap._root = data.root !== null ? nodes[data.root] : null;
+        heap._passive = data.passive !== null ? nodes[data.passive] : null;
+        heap._freeMultiple = data.freeMultiple !== null ? nodes[data.freeMultiple] : null;
+        heap._freeSingle = data.freeSingle !== null ? nodes[data.freeSingle] : null;
+        heap._lossZero = data.lossZero !== null ? nodes[data.lossZero] : null;
+        heap._lossOneMultiple = data.lossOneMultiple !== null ? nodes[data.lossOneMultiple] : null;
+        heap._lossOneSingle = data.lossOneSingle !== null ? nodes[data.lossOneSingle] : null;
+        heap._lossTwo = data.lossTwo !== null ? nodes[data.lossTwo] : null;
+        
+        // Update rank list pointers (_free and _lossOne for each rank)
+        for (const rank of ranks) {
+            rank._free = null;
+            rank._lossOne = null;
+            
+            // Find representative nodes for this rank
+            for (const node of nodes) {
+                if (node._rank === rank) {
+                    if (node._free && rank._free === null) {
+                        rank._free = node;
+                    } else if (node._loss === 1 && !node._free && rank._lossOne === null) {
+                        rank._lossOne = node;
+                    }
+                }
+            }
+        }
+        
+        return heap;
+    }
+
     rankZero() {
         if (this._rankList === null) {
             this._rankList = new Rank(0, this);
