@@ -132,7 +132,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         if (heap.empty()) throw new Error('state inconsistency: should not be able to remove min from empty heap');
 
         console.log(`Removing min from heap ${heap._heapId}`);
-        const steps = heap.delete_min();
+        const steps = heap.deleteMin();
         stepsManager.startSteps(steps);
     }
 
@@ -146,7 +146,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         }
 
         console.log(`Decreasing key of node ${appState.selectedNode.value._key} to ${newKey} in heap ${heap._heapId}`);
-        const steps = heap.decrease_key(appState.selectedNode.value, newKey);
+        const steps = heap.decreaseKey(appState.selectedNode.value, newKey);
         stepsManager.startSteps(steps);
 
         appState.selectedNode.value = null;
@@ -167,6 +167,84 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         appState.newKeyInput.value = null;
     }
 
+    function exportHeap() {
+        if (isBusy()) throw new Error('state inconsistency: should not be able to export while busy');
+
+        const heap = appState.getCurrentHeap();
+
+        if (heap.empty()) {
+            alert('Cannot export an empty heap');
+            return;
+        }
+
+        const data = heap.serialize();
+
+        const jsonString = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonString], {
+            type: 'application/json'
+        });
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `heap_${heap._heapId}_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        console.log(`Exported heap ${heap._heapId}`);
+    }
+
+    function triggerImportHeap() {
+        if (isBusy()) throw new Error('state inconsistency: should not be able to import while busy');
+
+        const fileInput = document.getElementById('importHeapFile');
+        fileInput.click();
+    }
+
+    function handleImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const heap = appState.getCurrentHeap();
+
+        const isEmpty = heap._size === 0;
+
+        if (!isEmpty) {
+            const confirmed = confirm(
+                'Warning: Importing will overwrite the current heap and all its data will be lost. Do you want to continue?'
+            );
+            if (!confirmed) {
+                event.target.value = '';
+                return;
+            }
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = JSON.parse(e.target.result);
+                const newHeap = Heap.deserialize(data);
+
+                const currentIndex = appState.currentHeapIndex.value;
+                const currentHeapId = appState.heaps.value[currentIndex]._heapId;
+                newHeap._heapId = currentHeapId;
+
+                appState.heaps.value[currentIndex] = newHeap;
+
+                console.log(`Imported heap into heap ${currentHeapId}`);
+                renderCy();
+            } catch (error) {
+                alert(`Failed to import heap: ${error.message}`);
+                console.error('Import error:', error);
+            } finally {
+                event.target.value = '';
+            }
+        };
+        reader.readAsText(file);
+    }
+
     return {
         inputValue,
         mergeState,
@@ -178,6 +256,9 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         insert,
         removeMin,
         decreaseKey,
-        deleteNode
+        deleteNode,
+        exportHeap,
+        triggerImportHeap,
+        handleImportFile
     };
 }

@@ -1,12 +1,12 @@
 // Heap
 export const MAX_HEAPS = 5;
-export const FIX_LIST_PASSIVE = 'passive';
-export const FIX_LIST_FREE_SINGLE = 'free_single';
-export const FIX_LIST_FREE_MULTIPLE = 'free_multiple';
-export const FIX_LIST_LOSS_ZERO = 'loss_zero';
-export const FIX_LIST_LOSS_ONE_SINGLE = 'loss_one_single';
-export const FIX_LIST_LOSS_ONE_MULTIPLE = 'loss_one_multiple';
-export const FIX_LIST_LOSS_TWO = 'loss_two';
+export const FIX_LIST_PASSIVE = '_passive';
+export const FIX_LIST_FREE_SINGLE = '_freeSingle';
+export const FIX_LIST_FREE_MULTIPLE = '_freeMultiple';
+export const FIX_LIST_LOSS_ZERO = '_lossZero';
+export const FIX_LIST_LOSS_ONE_SINGLE = '_lossOneSingle';
+export const FIX_LIST_LOSS_ONE_MULTIPLE = '_lossOneMultiple';
+export const FIX_LIST_LOSS_TWO = '_lossTwo';
 export const FIX_LIST_SECTIONS = [
     FIX_LIST_PASSIVE,
     FIX_LIST_FREE_MULTIPLE,

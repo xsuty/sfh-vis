@@ -11,10 +11,14 @@ export function getUIComputed(appState, heapManager, stepsManager) {
 
     const canInsert = computed(() => !heapManager.isBusy());
     const canDeleteMin = computed(() =>
-        !heapManager.isBusy() && appState.getCurrentHeap().size > 0
+        !heapManager.isBusy() && !appState.getCurrentHeap().empty()
     );
     const canMeldHeaps = computed(() =>
         !heapManager.isBusy() && appState.getHeapCount() > 1
+    );
+
+    const canExportHeap = computed(() =>
+        !heapManager.isBusy() && !appState.getCurrentHeap().empty()
     );
 
     const heapTabClasses = computed(() =>
@@ -35,8 +39,7 @@ export function getUIComputed(appState, heapManager, stepsManager) {
 
     const listsCyStyle = computed(() => ({
         height: appState.drawerOpen.value ?
-            `${appState.drawerHeight.value}px` :
-            ''
+            `${appState.drawerHeight.value}px` : ''
     }));
 
     return {
@@ -44,6 +47,7 @@ export function getUIComputed(appState, heapManager, stepsManager) {
         canInsert,
         canDeleteMin,
         canMeldHeaps,
+        canExportHeap,
         heapTabClasses,
         logStyles,
         listsCyStyle
