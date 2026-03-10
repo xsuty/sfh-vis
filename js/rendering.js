@@ -177,7 +177,7 @@ function collectNodes(advancedView, root) {
                     }
                 });
             } else {
-                const invisible = child !== node.left_child;
+                const invisible = child !== node._leftChild;
                 edges.push({
                     data: {
                         source: `n${node._id}`,
