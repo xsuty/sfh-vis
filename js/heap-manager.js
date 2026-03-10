@@ -169,19 +169,21 @@ export function getHeapManager(appState, stepsManager, renderCy) {
 
     function exportHeap() {
         if (isBusy()) throw new Error('state inconsistency: should not be able to export while busy');
-        
+
         const heap = appState.getCurrentHeap();
-        
+
         if (heap.empty()) {
             alert('Cannot export an empty heap');
             return;
         }
-        
+
         const data = heap.serialize();
-        
+
         const jsonString = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        
+        const blob = new Blob([jsonString], {
+            type: 'application/json'
+        });
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -190,13 +192,13 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         console.log(`Exported heap ${heap._heapId}`);
     }
 
     function triggerImportHeap() {
         if (isBusy()) throw new Error('state inconsistency: should not be able to import while busy');
-        
+
         const fileInput = document.getElementById('importHeapFile');
         fileInput.click();
     }
@@ -204,11 +206,11 @@ export function getHeapManager(appState, stepsManager, renderCy) {
     function handleImportFile(event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         const heap = appState.getCurrentHeap();
-        
+
         const isEmpty = heap._size === 0;
-        
+
         if (!isEmpty) {
             const confirmed = confirm(
                 'Warning: Importing will overwrite the current heap and all its data will be lost. Do you want to continue?'
@@ -218,19 +220,19 @@ export function getHeapManager(appState, stepsManager, renderCy) {
                 return;
             }
         }
-        
+
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 const data = JSON.parse(e.target.result);
                 const newHeap = Heap.deserialize(data);
-                
+
                 const currentIndex = appState.currentHeapIndex.value;
                 const currentHeapId = appState.heaps.value[currentIndex]._heapId;
                 newHeap._heapId = currentHeapId;
-                
+
                 appState.heaps.value[currentIndex] = newHeap;
-                
+
                 console.log(`Imported heap into heap ${currentHeapId}`);
                 renderCy();
             } catch (error) {

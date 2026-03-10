@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
-import { writeFileSync } from 'node:fs';
+import {
+    writeFileSync
+} from 'node:fs';
 import process from 'node:process';
-import { Heap } from './heap.js';
+import {
+    Heap
+} from './heap.js';
 
 const RANDOM_OPS_PER_TEST = 2000;
 
@@ -90,7 +94,12 @@ const failureTracker = {
         });
     },
 
-    record({ label, kind = 'mutation', heaps = [], details = null }) {
+    record({
+        label,
+        kind = 'mutation',
+        heaps = [],
+        details = null
+    }) {
         // Extract operation label (everything before " :: " or the full label if no steps)
         const operationLabel = label.split(' :: ')[0];
 
@@ -132,9 +141,9 @@ const failureTracker = {
     dump(error) {
         const failingOperation = this.lastOperation;
         const likelyTrigger =
-            failingOperation?.kind === 'validation' && this.lastMutation
-                ? this.lastMutation
-                : failingOperation;
+            failingOperation?.kind === 'validation' && this.lastMutation ?
+            this.lastMutation :
+            failingOperation;
 
         // Extract the operation name without step details for clearer reporting
         const operationLabel = likelyTrigger?.label?.split(' :: ')[0] ?? failingOperation?.label ?? 'unknown';
@@ -166,7 +175,7 @@ const failureTracker = {
             },
             failingOperation: {
                 ...likelyTrigger,
-                label: operationLabel  // Show just the operation name (e.g., "insert(6)" not "insert(6) :: step1")
+                label: operationLabel // Show just the operation name (e.g., "insert(6)" not "insert(6) :: step1")
             },
             likelyTriggerOperation: likelyTrigger,
             recentOperations: this.history.slice(-50)
@@ -229,11 +238,12 @@ function runRandomOperationsLoop(initialSeed = null) {
 function applyAllSteps(steps, context = {}) {
     const pending = Array.isArray(steps) ? [...steps] : [];
     const operationLabel = context.label ?? 'applyAllSteps';
-    const heaps = Array.isArray(context.heaps)
-        ? context.heaps
-        : context.heap
-            ? [{ name: 'heap', heap: context.heap }]
-            : [];
+    const heaps = Array.isArray(context.heaps) ?
+        context.heaps :
+        context.heap ? [{
+            name: 'heap',
+            heap: context.heap
+        }] : [];
     let index = 0;
     let processed = 0;
     let lastLabel = '(none)';
@@ -357,9 +367,9 @@ function allNodes(heap) {
  * Validate rank-list consistency.
  */
 function validateRankList(heap, nodes = null) {
-    const actualNodes = Array.isArray(nodes)
-        ? nodes
-        : (heap._root ? allNodes(heap) : []);
+    const actualNodes = Array.isArray(nodes) ?
+        nodes :
+        (heap._root ? allNodes(heap) : []);
 
     if (heap._active && heap._size === 0) {
         assert.equal(heap._rankList, null, 'rank list must be null for empty active heap');
@@ -435,9 +445,9 @@ function validateFixList(heap, nodes = null) {
         }
     }
 
-    const expectedNodes = Array.isArray(nodes)
-        ? nodes
-        : (heap._root ? allNodes(heap) : []);
+    const expectedNodes = Array.isArray(nodes) ?
+        nodes :
+        (heap._root ? allNodes(heap) : []);
     const expectedSet = new Set(expectedNodes);
 
     const seen = new Set();
@@ -625,7 +635,10 @@ function validate(heap) {
     failureTracker.record({
         label: 'validate(heap)',
         kind: 'validation',
-        heaps: [{ name: 'heap', heap }]
+        heaps: [{
+            name: 'heap',
+            heap
+        }]
     });
 
     assert.equal(heap._active, true, 'validate requires active heap');
@@ -746,8 +759,13 @@ function validateAgainstExpectedKeys(heap, expectedKeys) {
     failureTracker.record({
         label: 'validateAgainstExpectedKeys',
         kind: 'validation',
-        heaps: [{ name: 'heap', heap }],
-        details: { expectedSize: expectedKeys.length }
+        heaps: [{
+            name: 'heap',
+            heap
+        }],
+        details: {
+            expectedSize: expectedKeys.length
+        }
     });
 
     validate(heap);
@@ -820,9 +838,9 @@ function testSortingInsert(n, seed) {
     const rng = mulberry32(seed);
     const items = randomItems(n, rng);
     const heap = new Heap();
-    
+
     validate(heap);
-    
+
     for (const key of items) {
         applyAllSteps(heap.insert(key), {
             label: `testSortingInsert.insert(${key})`,
@@ -830,7 +848,7 @@ function testSortingInsert(n, seed) {
         });
         validate(heap);
     }
-    
+
     const sorted = deleteAll(heap);
     assert.deepEqual(sorted, [...items].sort((a, b) => a - b));
 }
@@ -865,13 +883,21 @@ function testSortingMeld(n, seed) {
         failureTracker.record({
             label: 'testSortingMeld.meld(h1, h2)',
             kind: 'mutation',
-            heaps: [
-                { name: 'h1', heap: h1 },
-                { name: 'h2', heap: h2 }
+            heaps: [{
+                    name: 'h1',
+                    heap: h1
+                },
+                {
+                    name: 'h2',
+                    heap: h2
+                }
             ]
         });
 
-        const { larger, steps } = h1.meld(h2);
+        const {
+            larger,
+            steps
+        } = h1.meld(h2);
         applyAllSteps(steps, {
             label: 'testSortingMeld.meldSteps',
             heap: larger
@@ -900,13 +926,20 @@ function testSortingDecreaseKey(n, seed) {
     // Create heap with n items each with the same large key
     for (const target of targetKeys) {
         const node = insertAndReturnNode(heap, n + 1);
-        pairs.push({ node, target });
+        pairs.push({
+            node,
+            target
+        });
         validate(heap);
     }
 
     // Decrease keys to the items' real values
     shuffleInPlace(pairs, rng);
-    for (const { node, target } of pairs) {
+    for (const {
+            node,
+            target
+        }
+        of pairs) {
         applyAllSteps(heap.decreaseKey(node, target), {
             label: `testSortingDecreaseKey.decreaseKey(${node._id}, ${target})`,
             heap
@@ -933,7 +966,10 @@ function testSortingSample(n, seed, deleteProbability = 0.5) {
     // Create heap with n nodes
     for (const key of items) {
         const node = insertAndReturnNode(heap, key);
-        nodes.push({ node, key });
+        nodes.push({
+            node,
+            key
+        });
         validate(heap);
     }
 
@@ -941,7 +977,11 @@ function testSortingSample(n, seed, deleteProbability = 0.5) {
     const remaining = [];
 
     // Remove sample
-    for (const { node, key } of nodes) {
+    for (const {
+            node,
+            key
+        }
+        of nodes) {
         if (rng() < deleteProbability) {
             applyAllSteps(heap.delete(node), {
                 label: `testSortingSample.delete(node#${node._id})`,
@@ -965,11 +1005,11 @@ function testMakeHeap(n, seed) {
     const rng = mulberry32(seed);
     const items = randomItems(n, rng);
     const heap = makeHeap(items);
-    
+
     validate(heap);
     assert.equal(heap.empty(), false);
     assert.equal(heap._size, n);
-    
+
     const sorted = deleteAll(heap);
     assert.deepEqual(sorted, [...items].sort((a, b) => a - b));
 }
@@ -992,7 +1032,11 @@ function testRandomOperations(n, seed) {
         // New heap (5% probability or if no heaps exist)
         if (heaps.length === 0 || p < 0.05) {
             const heap = new Heap();
-            heaps.push({ heap, keys: [], id: heapId });
+            heaps.push({
+                heap,
+                keys: [],
+                id: heapId
+            });
             heapId += 1;
             validate(heap);
         }
@@ -1006,13 +1050,21 @@ function testRandomOperations(n, seed) {
             failureTracker.record({
                 label: `meld(heap${first.id}, heap${second.id})`,
                 kind: 'mutation',
-                heaps: [
-                    { name: `heap${first.id}`, heap: first.heap },
-                    { name: `heap${second.id}`, heap: second.heap }
+                heaps: [{
+                        name: `heap${first.id}`,
+                        heap: first.heap
+                    },
+                    {
+                        name: `heap${second.id}`,
+                        heap: second.heap
+                    }
                 ]
             });
 
-            const { larger, steps } = first.heap.meld(second.heap);
+            const {
+                larger,
+                steps
+            } = first.heap.meld(second.heap);
             applyAllSteps(steps, {
                 label: `testRandomOperations.meldSteps(heap${first.id}, heap${second.id})`,
                 heap: larger
@@ -1066,8 +1118,13 @@ function testRandomOperations(n, seed) {
                 failureTracker.record({
                     label: 'testRandomOperations.assertRootIsExpectedMin',
                     kind: 'validation',
-                    heaps: [{ name: `heap${entry.id}`, heap: entry.heap }],
-                    details: { expectedMin }
+                    heaps: [{
+                        name: `heap${entry.id}`,
+                        heap: entry.heap
+                    }],
+                    details: {
+                        expectedMin
+                    }
                 });
                 assert.equal(entry.heap._root._key, expectedMin, 'Root should be minimum');
 

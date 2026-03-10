@@ -39,8 +39,7 @@ export function getUIComputed(appState, heapManager, stepsManager) {
 
     const listsCyStyle = computed(() => ({
         height: appState.drawerOpen.value ?
-            `${appState.drawerHeight.value}px` :
-            ''
+            `${appState.drawerHeight.value}px` : ''
     }));
 
     return {

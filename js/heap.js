@@ -834,13 +834,13 @@ export class Heap {
         const nodeToId = new Map();
         const rankToId = new Map();
         const heapToId = new Map();
-        
+
         // Helper to traverse all nodes in the heap
         const collectNodes = (node) => {
             if (!node || nodeToId.has(node)) return;
             nodeToId.set(node, nodes.length);
             nodes.push(node);
-            
+
             // Traverse children
             if (node._leftChild) {
                 let child = node._leftChild;
@@ -851,12 +851,12 @@ export class Heap {
                 } while (child !== first);
             }
         };
-        
+
         // Collect nodes from root
         if (this._root) {
             collectNodes(this._root);
         }
-        
+
         // Collect nodes from fix lists
         for (const section of Heap.FIX_LIST_SECTIONS) {
             const head = this[section];
@@ -869,7 +869,7 @@ export class Heap {
                 } while (node !== first);
             }
         }
-        
+
         const collectHeap = (heap) => {
             if (!heap || heapToId.has(heap)) return;
             heapToId.set(heap, heapToId.size);
@@ -912,7 +912,7 @@ export class Heap {
             refCount: rank._refCount,
             heap: heapToId.get(rank._heap)
         }));
-        
+
         // Serialize nodes
         const serializedNodes = nodes.map(node => ({
             id: node._id,
@@ -927,7 +927,7 @@ export class Heap {
             prev: nodeToId.has(node._prev) ? nodeToId.get(node._prev) : null,
             next: nodeToId.has(node._next) ? nodeToId.get(node._next) : null
         }));
-        
+
         return {
             version: 1,
             rootHeap: heapToId.get(this),
@@ -957,12 +957,12 @@ export class Heap {
         if (!Array.isArray(data.nodes) || !Array.isArray(data.ranks)) {
             throw new Error('Invalid serialization payload: nodes/ranks must be arrays');
         }
-        
+
         const heap = new Heap();
         heap._heapId = data.heapId;
         heap._active = data.active;
         heap._size = data.size;
-        
+
         // Restore max node ID
         Node._nextId = Math.max(Node._nextId || 0, data.maxNodeId || 0);
 
@@ -990,9 +990,9 @@ export class Heap {
         const ranks = [];
         for (let i = 0; i < data.ranks.length; i++) {
             const rankData = data.ranks[i];
-            const ownerHeapIndex = Number.isInteger(rankData.heap) && rankData.heap >= 0
-                ? rankData.heap
-                : rootHeapIndex;
+            const ownerHeapIndex = Number.isInteger(rankData.heap) && rankData.heap >= 0 ?
+                rankData.heap :
+                rootHeapIndex;
             const ownerHeap = heapRecords[ownerHeapIndex];
             if (!ownerHeap) throw new Error(`Invalid serialization payload: rank ${i} has invalid heap index`);
             const rank = new Rank(rankData.rank, ownerHeap);
@@ -1015,7 +1015,7 @@ export class Heap {
                 heapRanks[i].insertAfter(heapRanks[i - 1]);
             }
         }
-        
+
         // Create nodes without links
         const nodes = [];
         for (const nodeData of data.nodes) {
@@ -1030,12 +1030,12 @@ export class Heap {
             node._rank = ranks[nodeData.rank];
             nodes.push(node);
         }
-        
+
         // Restore node links
         for (let i = 0; i < data.nodes.length; i++) {
             const nodeData = data.nodes[i];
             const node = nodes[i];
-            
+
             node._left = nodeData.left !== null ? nodes[nodeData.left] : node;
             node._right = nodeData.right !== null ? nodes[nodeData.right] : node;
             node._parent = nodeData.parent !== null ? nodes[nodeData.parent] : null;
@@ -1043,7 +1043,7 @@ export class Heap {
             node._prev = nodeData.prev !== null ? nodes[nodeData.prev] : node;
             node._next = nodeData.next !== null ? nodes[nodeData.next] : node;
         }
-        
+
         // Restore heap pointers
         heap._root = data.root !== null ? nodes[data.root] : null;
         heap._passive = data.passive !== null ? nodes[data.passive] : null;
@@ -1053,7 +1053,7 @@ export class Heap {
         heap._lossOneMultiple = data.lossOneMultiple !== null ? nodes[data.lossOneMultiple] : null;
         heap._lossOneSingle = data.lossOneSingle !== null ? nodes[data.lossOneSingle] : null;
         heap._lossTwo = data.lossTwo !== null ? nodes[data.lossTwo] : null;
-        
+
         // Recompute rank metadata from nodes to keep counts and pointers consistent.
         for (const rank of ranks) {
             rank._refCount = 0;
@@ -1073,7 +1073,7 @@ export class Heap {
                 rank._lossOne = node;
             }
         }
-        
+
         return heap;
     }
 }
@@ -1236,7 +1236,9 @@ class Node {
 
         const steps = [];
         if (this._parent !== null) {
-            const { steps: subSteps } = this.heap().link(this, this._parent);
+            const {
+                steps: subSteps
+            } = this.heap().link(this, this._parent);
             steps.push(...subSteps);
         }
 
@@ -1332,7 +1334,10 @@ class Node {
             last = last._next;
             count += 1;
         }
-        return { first, count };
+        return {
+            first,
+            count
+        };
     }
 
     addFree() {
@@ -1343,7 +1348,9 @@ class Node {
             this._rank._free = this;
             this.fixListAttach(FIX_LIST_FREE_SINGLE);
         } else {
-            const { count: count } = free.fixListGroup();
+            const {
+                count: count
+            } = free.fixListGroup();
             const succ = free._next;
             if (count >= 2) {
                 succ.addPrev(this);
@@ -1373,7 +1380,9 @@ class Node {
                 this._rank._lossOne = this;
                 this.fixListAttach(FIX_LIST_LOSS_ONE_SINGLE);
             } else {
-                const { count: count } = lossOne.fixListGroup();
+                const {
+                    count: count
+                } = lossOne.fixListGroup();
                 const succ = lossOne._next;
                 if (count >= 2) {
                     succ.addPrev(this);
@@ -1414,7 +1423,10 @@ class Node {
         if (free === this) {
             this.reassignRankFree();
         }
-        const { first, count } = this.fixListGroup();
+        const {
+            first,
+            count
+        } = this.fixListGroup();
         if (count === 1) {
             if (heap._freeSingle === this) {
                 if (succ !== this && succ.free()) {
@@ -1462,7 +1474,10 @@ class Node {
             if (lossOne === this) {
                 this.reassignRankLossOne();
             }
-            const { first, count } = this.fixListGroup();
+            const {
+                first,
+                count
+            } = this.fixListGroup();
             if (count === 1) {
                 if (heap._lossOneSingle === this) {
                     if (succ !== this && succ.fixed() && succ._loss === 1) {

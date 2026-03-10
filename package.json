@@ -1,0 +1,42 @@
+{
+  "name": "sfh-visualizer",
+  "version": "1.0.0",
+  "description": "An interactive web-based visualization tool for Strict Fibonacci Heaps",
+  "type": "module",
+  "author": "Štefan Šutý",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/xsuty/sfh-vis.git"
+  },
+  "keywords": [
+    "fibonacci-heap",
+    "data-structures",
+    "visualization",
+    "educational",
+    "algorithm"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "htmlhint": "^1.8.0",
+    "http-server": "^14.1.1",
+    "js-beautify": "^1.15.4",
+    "stylelint": "^17.1.0",
+    "stylelint-config-standard": "^40.0.0"
+  },
+  "scripts": {
+    "dev": "npx http-server",
+    "test:heap": "node .\\js\\heap.tests.js",
+    "format:js": "npx js-beautify ./js/* -r",
+    "format:css": "npx js-beautify ./css/styles.css -r",
+    "format:html": "npx js-beautify index.html -r",
+    "format": "npm run format:js && npm run format:css && npm run format:html",
+    "lint:js": "eslint . --fix",
+    "lint:css": "stylelint **/*.css --fix",
+    "lint:html": "htmlhint index.html",
+    "lint": "npm run lint:js && npm run lint:css && npm run lint:html"
+  }
+}
