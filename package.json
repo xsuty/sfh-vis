@@ -29,7 +29,7 @@
   },
   "scripts": {
     "dev": "npx http-server",
-    "test:heap": "node .\\js\\heap.tests.js",
+    "test:heap": "node ./js/heap.tests.js",
     "format:js": "npx js-beautify ./js/* -r",
     "format:css": "npx js-beautify ./css/styles.css -r",
     "format:html": "npx js-beautify index.html -r",

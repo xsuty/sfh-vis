@@ -922,8 +922,8 @@ export class Heap {
             rank: rankToId.get(node._rank),
             left: nodeToId.has(node._left) ? nodeToId.get(node._left) : null,
             right: nodeToId.has(node._right) ? nodeToId.get(node._right) : null,
-            parent: node._parent ? nodeToId.get(node._parent) : null,
-            leftChild: node._leftChild ? nodeToId.get(node._leftChild) : null,
+            parent: node._parent && nodeToId.has(node._parent) ? nodeToId.get(node._parent) : null,
+            leftChild: node._leftChild && nodeToId.has(node._leftChild) ? nodeToId.get(node._leftChild) : null,
             prev: nodeToId.has(node._prev) ? nodeToId.get(node._prev) : null,
             next: nodeToId.has(node._next) ? nodeToId.get(node._next) : null
         }));
