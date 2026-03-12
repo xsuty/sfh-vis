@@ -911,6 +911,34 @@ function testSortingMeld(n, seed) {
     assert.deepEqual(sorted, [...items].sort((a, b) => a - b));
 }
 
+function testDeserializeSameHeapTwiceMeld() {
+    const original = makeHeap([7, 2, 9, 1, 6, 3, 8]);
+    const snapshot = original.serialize();
+
+    const heapA = Heap.deserialize(snapshot);
+    const heapB = Heap.deserialize(snapshot);
+
+    const {
+        larger,
+        steps
+    } = heapA.meld(heapB);
+
+    applyAllSteps(steps, {
+        label: 'testDeserializeSameHeapTwiceMeld.meldSteps',
+        heap: larger
+    });
+
+    validate(larger);
+
+    const mergedNodes = allNodes(larger);
+    const uniqueIds = new Set(mergedNodes.map((node) => node._id));
+    assert.equal(
+        uniqueIds.size,
+        mergedNodes.length,
+        'Melded heap should not contain duplicate node IDs after importing same snapshot twice'
+    );
+}
+
 /**
  * Sort using n × decreaseKey and n × deleteMin.
  * Mirrors test_sorting_decreasekey from sfh_v2.py.
@@ -1189,6 +1217,8 @@ function run() {
             () => testRandomOperations(RANDOM_OPS_PER_TEST, seed)
         );
     }
+
+    runCase('testDeserializeSameHeapTwiceMeld()', () => testDeserializeSameHeapTwiceMeld());
 
     const ms = Date.now() - start;
     console.log(`\n=== ALL TESTS PASSED in ${ms} ms ===`);

@@ -87,6 +87,7 @@ export function renderHeap(appState, heapCy) {
         elements.push(e);
     }
 
+    assertNoDuplicateIds(elements);
     heapCy.add(elements);
     fitTextIntoNode(heapCy, appState.ctx);
     heapCy.fit(undefined, C.HEAP_PADDING);
@@ -119,6 +120,7 @@ export function renderLists(heap, advancedView, ctx, listsCy) {
         fixNodes
     } = createFixList(advancedView, heap);
     const rankElements = createRankList(advancedView, heap);
+    assertNoDuplicateIds([...fixElements, ...rankElements]);
     listsCy.add([...fixElements, ...rankElements]);
 
     if (advancedView.value) listsCy.add(linkLists(listsCy, fixNodes));
@@ -420,6 +422,16 @@ function getFixSections(heap) {
         start,
         elements
     };
+}
+
+function assertNoDuplicateIds(elements) {
+    const seen = new Set();
+    for (const el of elements) {
+        const id = el?.data?.id;
+        if (id == null) continue;
+        if (seen.has(id)) throw new Error(`Duplicate Cytoscape element ID detected: "${id}"`);
+        seen.add(id);
+    }
 }
 
 function formatHeapNodeLabel(node, advanced) {

@@ -1023,7 +1023,8 @@ export class Heap {
                 throw new Error(`Invalid serialization payload: node ${nodeData.id} has invalid rank index`);
             }
             const node = Object.create(Node.prototype);
-            node._id = nodeData.id;
+            Node._nextId = (Node._nextId || 0) + 1;
+            node._id = Node._nextId;
             node._key = nodeData.key;
             node._free = nodeData.free;
             node._loss = nodeData.loss;
