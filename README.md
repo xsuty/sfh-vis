@@ -9,7 +9,7 @@ An interactive web-based visualization tool for understanding and experimenting 
 - 🎯 **Interactive Operations**: Insert, delete minimum, decrease key, delete node, and meld heaps
 - 📚 **Step-by-Step Execution**: Visualize algorithm steps to understand the internal mechanics
 - 🌳 **Multiple Heaps**: Work with multiple heaps simultaneously and merge them together
-- 📊 **Dynamic Visualization**: Real-time graph rendering with Cytoscape and Dagre layout
+- 📊 **Dynamic Visualization**: Real-time graph rendering with Cytoscape and a custom tidy-tree layout
 - 🔬 **Advanced Mode**: Detailed operation information for deeper learning
 - 💾 **Data Persistence**: Export and import heap states as JSON
 - 🛠️ **Developer Tools**: ESLint, stylelint, and HTMLHint for code quality
@@ -184,7 +184,7 @@ npm run lint               # Run all linters and validators
 
 - **Vue.js 3**: Progressive JavaScript framework for the UI
 - **Cytoscape.js**: Graph visualization and analysis
-- **Dagre**: Graph layout engine for hierarchical visualization
+- **Custom tree layout**: Tidy subtree-aware positioning for heap visualization
 - **ESLint**: JavaScript code quality and style
 - **stylelint**: CSS code quality
 - **HTMLHint**: HTML validation

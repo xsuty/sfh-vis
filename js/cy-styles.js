@@ -19,6 +19,7 @@ export const HEAP_CY_STYLE = [
             'curve-style': 'bezier',
             width: 2,
             'line-color': '#999',
+            opacity: 0.9,
             'target-arrow-shape': 'triangle',
             label: 'data(label)',
             'font-size': 8,
@@ -34,9 +35,60 @@ export const HEAP_CY_STYLE = [
         },
     },
     {
-        selector: 'edge.invisible',
+        selector: 'edge.tree-edge',
         style: {
-            opacity: 0,
+            width: 2.5,
+            'line-color': '#d7dee7',
+            'target-arrow-color': '#d7dee7',
+        },
+    },
+    {
+        selector: 'edge.simple-tree-edge',
+        style: {
+            'curve-style': 'taxi',
+            'taxi-direction': 'vertical',
+            'taxi-turn': '50%',
+            'target-arrow-shape': 'none',
+            opacity: 1,
+        },
+    },
+    {
+        selector: 'edge.left-child-edge',
+        style: {
+            'curve-style': 'taxi',
+            'taxi-direction': 'vertical',
+            'taxi-turn': '55%',
+            'target-arrow-shape': 'triangle',
+            'font-size': 9,
+            'text-background-opacity': 0.45,
+        },
+    },
+    {
+        selector: 'edge.pointer-edge',
+        style: {
+            width: 1.5,
+            opacity: 0.45,
+            'line-color': '#7f8c9a',
+            'target-arrow-color': '#7f8c9a',
+            'font-size': 7,
+            'text-background-opacity': 0.45,
+        },
+    },
+    {
+        selector: 'edge.parent-edge',
+        style: {
+            'curve-style': 'unbundled-bezier',
+            'control-point-distances': '-18',
+            'control-point-weights': '0.35',
+            'line-style': 'dashed',
+        },
+    },
+    {
+        selector: 'edge.lateral-edge',
+        style: {
+            width: 1.75,
+            'line-style': 'dotted',
+            'text-background-opacity': 0.55,
         },
     },
 
@@ -89,6 +141,35 @@ export const HEAP_CY_STYLE = [
             'target-endpoint': '110deg',
             'loop-direction': '90deg',
             'loop-sweep': '50deg',
+        },
+    },
+    {
+        selector: 'node.inspect-focus',
+        style: {
+            'border-width': 4,
+            'border-color': '#fff6b0',
+            'overlay-opacity': 0,
+        },
+    },
+    {
+        selector: 'node.inspect-context',
+        style: {
+            'border-width': 2,
+            'border-color': '#92c9ff',
+        },
+    },
+    {
+        selector: 'edge.inspect-context',
+        style: {
+            opacity: 0.95,
+            width: 2.5,
+            'text-background-opacity': 0.8,
+        },
+    },
+    {
+        selector: '.inspect-dim',
+        style: {
+            opacity: 0.14,
         },
     },
 ];
@@ -161,6 +242,7 @@ export const LISTS_CY_STYLE = [
         style: {
             'curve-style': 'round-segments',
             'edge-distances': 'endpoints',
+            'segment-weights': '-0.25 -0.25 1.25 1.25',
             'segment-distances': '0px -40px -40px 0px',
             label: '',
             'source-label': 'data(label)',
@@ -249,6 +331,35 @@ export const LISTS_CY_STYLE = [
             'source-label': 'loss_one',
             'source-text-offset': 15,
             'source-arrow-shape': 'triangle',
+        },
+    },
+    {
+        selector: 'node.inspect-focus',
+        style: {
+            'border-width': 4,
+            'border-color': '#fff6b0',
+            'overlay-opacity': 0,
+        },
+    },
+    {
+        selector: 'node.inspect-context',
+        style: {
+            'border-width': 2,
+            'border-color': '#92c9ff',
+        },
+    },
+    {
+        selector: 'edge.inspect-context',
+        style: {
+            opacity: 0.95,
+            width: 2.5,
+            'text-background-opacity': 0.8,
+        },
+    },
+    {
+        selector: '.inspect-dim',
+        style: {
+            opacity: 0.14,
         },
     },
 ];

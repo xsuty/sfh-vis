@@ -16,6 +16,7 @@ import {
     renderHeap,
     renderLists,
     setupNodeClick,
+    setupListsInspect,
     makeDrawerResizable
 } from './rendering.js';
 import {
@@ -69,7 +70,7 @@ createApp({
                 if (!listsCy) throw new Error('listsCy not initialized');
                 const heap = appState.getCurrentHeap();
                 if (!heap) throw new Error('incorrect heap index');
-                nextTick(() => renderLists(heap, appState.advancedView, appState.ctx, listsCy));
+                nextTick(() => renderLists(heap, appState.advancedView, appState.selectedNode, appState.ctx, listsCy));
             }
         }
 
@@ -88,6 +89,7 @@ createApp({
             initHeapCy(document.getElementById(C.HEAP_CY_DOM));
             initListsCy(document.getElementById(C.LISTS_CY_DOM));
             setupNodeClick(heapCy, appState, heapManager.isBusy);
+            setupListsInspect(listsCy, appState);
             makeDrawerResizable({
                 drawerOpen: appState.drawerOpen,
                 drawerHeight: appState.drawerHeight,

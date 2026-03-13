@@ -12,6 +12,41 @@ export function setupNodeClick(heapCy, appState, isBusy) {
         appState.selectedNode.value = heapNode;
         appState.newKeyInput.value = heapNode._key;
         appState.nodeModalOpen.value = true;
+        applyInspectFocus(heapCy, appState, nodeId);
+    });
+
+    heapCy.on('mouseover', 'node', (evt) => {
+        applyInspectFocus(heapCy, appState, evt.target.id());
+    });
+
+    heapCy.on('mouseout', 'node', () => {
+        const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
+        applyInspectFocus(heapCy, appState, selectedId);
+    });
+
+    heapCy.on('tap', (evt) => {
+        if (evt.target !== heapCy) return;
+        const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
+        applyInspectFocus(heapCy, appState, selectedId);
+    });
+}
+
+export function setupListsInspect(listsCy, appState) {
+    listsCy.on('mouseover', 'node:not(.section)', (evt) => {
+        applyListInspectFocus(listsCy, appState.advancedView, [evt.target.id()]);
+    });
+
+    listsCy.on('mouseout', 'node:not(.section)', () => {
+        applyListInspectFromSelection(listsCy, appState.advancedView, appState.selectedNode.value);
+    });
+
+    listsCy.on('tap', 'node:not(.section)', (evt) => {
+        applyListInspectFocus(listsCy, appState.advancedView, [evt.target.id()]);
+    });
+
+    listsCy.on('tap', (evt) => {
+        if (evt.target !== listsCy) return;
+        applyListInspectFromSelection(listsCy, appState.advancedView, appState.selectedNode.value);
     });
 }
 
@@ -90,27 +125,23 @@ export function renderHeap(appState, heapCy) {
     assertNoDuplicateIds(elements);
     heapCy.add(elements);
     fitTextIntoNode(heapCy, appState.ctx);
-    heapCy.fit(undefined, C.HEAP_PADDING);
 
-    const structureElements = heapCy.elements().filter(el => !el.data('displayOnly'));
-    structureElements.layout({
-        name: 'dagre',
-        rankDir: 'TB',
-        ranker: 'tight-tree',
-        nodeSep: appState.advancedView.value ? C.ADVANCED_NODE_SEP : C.BASIC_NODE_SEP,
-        rankSep: appState.advancedView.value ? C.ADVANCED_RANK_SEP : C.BASIC_RANK_SEP,
-        edgeSep: appState.advancedView.value ? C.ADVANCED_EDGE_SEP : C.BASIC_EDGE_SEP,
-        marginx: C.MARGIN_X,
-        marginy: C.MARGIN_Y
-    }).run();
+    const nodeSep = appState.advancedView.value ? C.ADVANCED_NODE_SEP : C.BASIC_NODE_SEP;
+    const rankSep = appState.advancedView.value ? C.ADVANCED_RANK_SEP : C.BASIC_RANK_SEP;
+    layoutTree(heap, heapCy, nodeSep, rankSep);
 
     heapCy.edges('.wrap').forEach(edge => {
         const w = edge.data('segmentWeight');
         setSegmentWeights(edge, w);
     });
+
+    heapCy.fit(undefined, C.HEAP_PADDING);
+
+    const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
+    applyInspectFocus(heapCy, appState, selectedId);
 }
 
-export function renderLists(heap, advancedView, ctx, listsCy) {
+export function renderLists(heap, advancedView, selectedNode, ctx, listsCy) {
     if (!listsCy) throw new Error('listsCy not initialized');
 
     listsCy.elements().remove();
@@ -126,7 +157,6 @@ export function renderLists(heap, advancedView, ctx, listsCy) {
     if (advancedView.value) listsCy.add(linkLists(listsCy, fixNodes));
 
     fitTextIntoNode(listsCy, ctx);
-    listsCy.fit(undefined, C.LISTS_PADDING);
 
     if (fixNodes.length > 0) {
         const w = 1 / (fixNodes.length * 3);
@@ -134,6 +164,10 @@ export function renderLists(heap, advancedView, ctx, listsCy) {
             setSegmentWeights(edge, w);
         });
     }
+
+    listsCy.fit(undefined, C.LISTS_PADDING);
+
+    applyListInspectFromSelection(listsCy, advancedView, selectedNode.value);
 }
 
 // === Internal Rendering Helpers ===
@@ -151,51 +185,49 @@ function collectNodes(advancedView, root) {
                     source: `n${node._id}`,
                     target: `n${node._left._id}`,
                     label: 'left',
-                    displayOnly: true,
                     segmentWeight: w
                 },
-                classes: isSingle ? 'single-left' : first ? 'wrap wrap-left' : ''
+                classes: joinClasses('pointer-edge lateral-edge left-pointer', isSingle ? 'single-left' : first ? 'wrap wrap-left' : '')
             });
             edges.push({
                 data: {
                     source: `n${node._id}`,
                     target: `n${node._right._id}`,
                     label: 'right',
-                    displayOnly: true,
                     segmentWeight: w
                 },
-                classes: isSingle ? 'single-right' : last ? 'wrap wrap-right' : ''
+                classes: joinClasses('pointer-edge lateral-edge right-pointer', isSingle ? 'single-right' : last ? 'wrap wrap-right' : '')
             });
         }
-        const children = node.children()
+        const children = node.children();
         for (const child of children) {
             if (!advancedView.value) {
                 edges.push({
                     data: {
                         source: `n${node._id}`,
                         target: `n${child._id}`,
-                        label: '',
-                        displayOnly: false
-                    }
+                        label: ''
+                    },
+                    classes: 'tree-edge simple-tree-edge'
                 });
             } else {
-                const invisible = child !== node._leftChild;
-                edges.push({
-                    data: {
-                        source: `n${node._id}`,
-                        target: `n${child._id}`,
-                        label: 'left_child',
-                        displayOnly: false,
-                    },
-                    classes: invisible ? 'invisible' : ''
-                });
+                if (child === node._leftChild) {
+                    edges.push({
+                        data: {
+                            source: `n${node._id}`,
+                            target: `n${child._id}`,
+                            label: 'left_child',
+                        },
+                        classes: 'tree-edge left-child-edge'
+                    });
+                }
                 edges.push({
                     data: {
                         source: `n${child._id}`,
                         target: `n${node._id}`,
-                        label: 'parent',
-                        displayOnly: true
-                    }
+                        label: 'parent'
+                    },
+                    classes: 'pointer-edge parent-edge'
                 });
             }
             const isFirst = child === children[0];
@@ -424,6 +456,36 @@ function getFixSections(heap) {
     };
 }
 
+function layoutTree(heap, heapCy, nodeSep, rankSep) {
+    function subtreeWidth(node) {
+        const c = node.children();
+        if (c.length === 0) return C.NODE_SIZE;
+        const total = c.reduce((sum, child) => sum + subtreeWidth(child), 0) + (c.length - 1) * nodeSep;
+        return Math.max(C.NODE_SIZE, total);
+    }
+
+    const positions = {};
+
+    function place(node, centerX, y) {
+        positions[`n${node._id}`] = { x: centerX, y };
+        const c = node.children();
+        if (c.length === 0) return;
+        const totalW = c.reduce((sum, child) => sum + subtreeWidth(child), 0) + (c.length - 1) * nodeSep;
+        let x = centerX - totalW / 2;
+        for (const child of c) {
+            const w = subtreeWidth(child);
+            place(child, x + w / 2, y + C.NODE_SIZE + rankSep);
+            x += w + nodeSep;
+        }
+    }
+
+    place(heap._root, 0, 0);
+    heapCy.nodes().forEach(n => {
+        const pos = positions[n.id()];
+        if (pos) n.position(pos);
+    });
+}
+
 function assertNoDuplicateIds(elements) {
     const seen = new Set();
     for (const el of elements) {
@@ -442,4 +504,70 @@ function formatHeapNodeLabel(node, advanced) {
 function formatRankLabel(rankNode, advanced) {
     if (!advanced) return `r${rankNode._rank}`;
     return `Rank: ${rankNode._rank}\nRefs: ${rankNode._refCount}`;
+}
+
+function applyInspectFocus(heapCy, appState, focusedId) {
+    const classes = ['inspect-focus', 'inspect-context', 'inspect-dim'];
+    heapCy.elements().removeClass(classes.join(' '));
+
+    if (!appState.advancedView.value || !focusedId) return;
+
+    const focusNode = heapCy.getElementById(focusedId);
+    if (focusNode.empty()) return;
+
+    const neighborhoodEdges = focusNode.connectedEdges();
+    const neighborhoodNodes = neighborhoodEdges.connectedNodes().union(focusNode);
+    const highlighted = neighborhoodNodes.union(neighborhoodEdges);
+
+    heapCy.elements().difference(highlighted).addClass('inspect-dim');
+    neighborhoodNodes.difference(focusNode).addClass('inspect-context');
+    neighborhoodEdges.addClass('inspect-context');
+    focusNode.addClass('inspect-focus');
+}
+
+function applyListInspectFromSelection(listsCy, advancedView, selectedNode) {
+    if (!selectedNode) {
+        applyListInspectFocus(listsCy, advancedView, []);
+        return;
+    }
+
+    applyListInspectFocus(listsCy, advancedView, [
+        `fix-${selectedNode._id}`,
+        `rank-${selectedNode.rank()}`
+    ]);
+}
+
+function applyListInspectFocus(listsCy, advancedView, focusedIds) {
+    const classes = ['inspect-focus', 'inspect-context', 'inspect-dim'];
+    listsCy.elements().removeClass(classes.join(' '));
+
+    if (!advancedView.value || focusedIds.length === 0) return;
+
+    let focused = listsCy.collection();
+    for (const id of focusedIds) {
+        const node = listsCy.getElementById(id);
+        if (!node.empty()) focused = focused.union(node);
+    }
+
+    if (focused.empty()) return;
+
+    let neighborhoodEdges = listsCy.collection();
+    focused.forEach((node) => {
+        neighborhoodEdges = neighborhoodEdges.union(node.connectedEdges());
+    });
+
+    const neighborhoodNodes = neighborhoodEdges.connectedNodes().union(focused);
+    const highlighted = neighborhoodNodes.union(neighborhoodEdges);
+
+    // Keep compound parents visible so highlighted child nodes do not get dimmed by parent opacity.
+    const keepVisible = highlighted.union(neighborhoodNodes.parents());
+
+    listsCy.elements().difference(keepVisible).addClass('inspect-dim');
+    neighborhoodNodes.difference(focused).addClass('inspect-context');
+    neighborhoodEdges.addClass('inspect-context');
+    focused.addClass('inspect-focus');
+}
+
+function joinClasses(...classes) {
+    return classes.filter(Boolean).join(' ');
 }

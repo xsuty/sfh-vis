@@ -19,14 +19,10 @@ export const FIX_LIST_SECTIONS = [
 
 // Heap rendering
 export const HEAP_PADDING = 40;
-export const BASIC_NODE_SEP = 25;
-export const BASIC_RANK_SEP = 25;
-export const BASIC_EDGE_SEP = 25;
+export const BASIC_NODE_SEP = 15;
+export const BASIC_RANK_SEP = 40;
 export const ADVANCED_NODE_SEP = 50;
-export const ADVANCED_RANK_SEP = 75;
-export const ADVANCED_EDGE_SEP = 50;
-export const MARGIN_X = 20;
-export const MARGIN_Y = 20;
+export const ADVANCED_RANK_SEP = 60;
 
 // Lists rendering
 export const LISTS_PADDING = 50;
