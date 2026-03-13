@@ -32,6 +32,7 @@ export const ADVANCED_FIX_Y = 300;
 export const RANK_X = 50;
 export const RANK_Y = 80;
 export const X_STEP = 150;
+export const WRAP_STUB_LENGTH = 20;
 
 // Node rendering
 export const NODE_SIZE = 70;

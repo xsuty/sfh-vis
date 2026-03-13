@@ -131,8 +131,7 @@ export function renderHeap(appState, heapCy) {
     layoutTree(heap, heapCy, nodeSep, rankSep);
 
     heapCy.edges('.wrap').forEach(edge => {
-        const w = edge.data('segmentWeight');
-        setSegmentWeights(edge, w);
+        setSegmentWeights(edge);
     });
 
     heapCy.fit(undefined, C.HEAP_PADDING);
@@ -159,9 +158,8 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy) {
     fitTextIntoNode(listsCy, ctx);
 
     if (fixNodes.length > 0) {
-        const w = 1 / (fixNodes.length * 3);
         listsCy.edges('.wrap').forEach(edge => {
-            setSegmentWeights(edge, w);
+            setSegmentWeights(edge);
         });
     }
 
@@ -175,17 +173,15 @@ function collectNodes(advancedView, root) {
     const nodes = [];
     const edges = [];
 
-    function dfs(node, siblingCount, first, last) {
+    function dfs(node, first, last) {
         nodes.push(node);
-        const w = 1 / (siblingCount * 4);
         if (advancedView.value) {
             const isSingle = node._left === node;
             edges.push({
                 data: {
                     source: `n${node._id}`,
                     target: `n${node._left._id}`,
-                    label: 'left',
-                    segmentWeight: w
+                    label: 'left'
                 },
                 classes: joinClasses('pointer-edge lateral-edge left-pointer', isSingle ? 'single-left' : first ? 'wrap wrap-left' : '')
             });
@@ -193,8 +189,7 @@ function collectNodes(advancedView, root) {
                 data: {
                     source: `n${node._id}`,
                     target: `n${node._right._id}`,
-                    label: 'right',
-                    segmentWeight: w
+                    label: 'right'
                 },
                 classes: joinClasses('pointer-edge lateral-edge right-pointer', isSingle ? 'single-right' : last ? 'wrap wrap-right' : '')
             });
@@ -232,11 +227,11 @@ function collectNodes(advancedView, root) {
             }
             const isFirst = child === children[0];
             const isLast = child === children[children.length - 1];
-            dfs(child, children.length, isFirst, isLast);
+            dfs(child, isFirst, isLast);
         }
     }
 
-    if (root) dfs(root, 1, true, true);
+    if (root) dfs(root, true, true);
     return {
         nodes,
         edges
@@ -430,7 +425,14 @@ function fitTextIntoNode(cy, ctx) {
     });
 }
 
-function setSegmentWeights(edge, w) {
+function setSegmentWeights(edge) {
+    const source = edge.sourceEndpoint();
+    const target = edge.targetEndpoint();
+    const dx = target.x - source.x;
+    const dy = target.y - source.y;
+    const endpointDistance = Math.hypot(dx, dy);
+    const w = endpointDistance > 0 ? C.WRAP_STUB_LENGTH / endpointDistance : 0;
+
     edge.style('segment-weights', `${-w} ${-w} ${1 + w} ${1 + w}`);
 }
 
@@ -467,7 +469,10 @@ function layoutTree(heap, heapCy, nodeSep, rankSep) {
     const positions = {};
 
     function place(node, centerX, y) {
-        positions[`n${node._id}`] = { x: centerX, y };
+        positions[`n${node._id}`] = {
+            x: centerX,
+            y
+        };
         const c = node.children();
         if (c.length === 0) return;
         const totalW = c.reduce((sum, child) => sum + subtreeWidth(child), 0) + (c.length - 1) * nodeSep;
