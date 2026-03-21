@@ -78,6 +78,13 @@
                 {{ drawerOpen ? '▼ Hide Lists' : '▲ Show Lists' }}
             </button>
             <div class="drawer-content" v-show="drawerOpen">
+                <div class="fix-list-toolbar">
+                    <button @click="toggleAllFixListSections()">Toggle all sections</button>
+                    <span>Collapsible sections:</span>
+                    <button v-for="section in fixListSections" :key="section" @click="toggleFixListSection(section)">
+                        {{ section.replace(/^_/, '') }}
+                    </button>
+                </div>
                 <div id="lists-cy" :style="listsCyStyle"></div>
             </div>
         </div>

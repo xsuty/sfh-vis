@@ -70,11 +70,16 @@ createApp({
                 if (!listsCy) throw new Error('listsCy not initialized');
                 const heap = appState.getCurrentHeap();
                 if (!heap) throw new Error('incorrect heap index');
-                nextTick(() => renderLists(heap, appState.advancedView, appState.selectedNode, appState.ctx, listsCy));
+                nextTick(() => renderLists(heap, appState.advancedView, appState.selectedNode, appState.ctx, listsCy, {
+                    collapsedSections: appState.fixListCollapsedSections.value
+                }));
             }
         }
 
         watch(() => appState.advancedView.value, renderCy);
+        watch(() => appState.fixListCollapsedSections.value, renderCy, {
+            deep: true
+        });
 
         watch(() => appState.drawerOpen.value, (open) => {
             if (open) {
@@ -84,6 +89,20 @@ createApp({
                 renderCy();
             }
         });
+
+        function toggleFixListSection(section) {
+            appState.fixListCollapsedSections.value = {
+                ...appState.fixListCollapsedSections.value,
+                [section]: !appState.fixListCollapsedSections.value[section]
+            };
+        }
+
+        function toggleAllFixListSections() {
+            const allCollapsed = Object.values(appState.fixListCollapsedSections.value).every(v => v);
+            appState.fixListCollapsedSections.value = Object.fromEntries(
+                C.FIX_LIST_SECTIONS.map(section => [section, !allCollapsed])
+            );
+        }
 
         onMounted(() => {
             initHeapCy(document.getElementById(C.HEAP_CY_DOM));
@@ -104,6 +123,9 @@ createApp({
             ...stepsManager,
             ...heapManager,
             ...ui,
+            fixListSections: C.FIX_LIST_SECTIONS,
+            toggleFixListSection,
+            toggleAllFixListSections,
             MAX_HEAPS: C.MAX_HEAPS
         };
     }

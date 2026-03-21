@@ -1,3 +1,4 @@
+import * as C from './constants.js';
 import {
     Heap
 } from './heap.js';
@@ -35,6 +36,7 @@ export function initAppState() {
         drawerOpen: ref(false),
         drawerHeight: ref(window.innerHeight / 2),
         ctx: canvas.getContext('2d'),
+        fixListCollapsedSections: ref(Object.fromEntries(C.FIX_LIST_SECTIONS.map(section => [section, false]))),
         getHeap,
         getCurrentHeap,
         getHeapCount

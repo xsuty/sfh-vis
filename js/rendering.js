@@ -32,16 +32,22 @@ export function setupNodeClick(heapCy, appState, isBusy) {
 }
 
 export function setupListsInspect(listsCy, appState) {
-    listsCy.on('mouseover', 'node:not(.section)', (evt) => {
-        applyListInspectFocus(listsCy, appState.advancedView, [evt.target.id()]);
+    function processNonSectionNode(evt, callback) {
+        const target = evt.target;
+        if (target.hasClass('section')) return;
+        callback(target.id());
+    }
+
+    listsCy.on('mouseover', 'node', (evt) => {
+        processNonSectionNode(evt, (id) => applyListInspectFocus(listsCy, appState.advancedView, [id]));
     });
 
-    listsCy.on('mouseout', 'node:not(.section)', () => {
+    listsCy.on('mouseout', 'node', () => {
         applyListInspectFromSelection(listsCy, appState.advancedView, appState.selectedNode.value);
     });
 
-    listsCy.on('tap', 'node:not(.section)', (evt) => {
-        applyListInspectFocus(listsCy, appState.advancedView, [evt.target.id()]);
+    listsCy.on('tap', 'node', (evt) => {
+        processNonSectionNode(evt, (id) => applyListInspectFocus(listsCy, appState.advancedView, [id]));
     });
 
     listsCy.on('tap', (evt) => {
@@ -140,25 +146,27 @@ export function renderHeap(appState, heapCy) {
     applyInspectFocus(heapCy, appState, selectedId);
 }
 
-export function renderLists(heap, advancedView, selectedNode, ctx, listsCy) {
+export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixListConfig = {}) {
     if (!listsCy) throw new Error('listsCy not initialized');
+
+    const collapsedSections = fixListConfig.collapsedSections || {};
 
     listsCy.elements().remove();
 
     const {
         elements: fixElements,
         fixNodes
-    } = createFixList(advancedView, heap);
+    } = createFixList(advancedView, heap, collapsedSections);
     const rankElements = createRankList(advancedView, heap);
     assertNoDuplicateIds([...fixElements, ...rankElements]);
     listsCy.add([...fixElements, ...rankElements]);
 
-    if (advancedView.value) listsCy.add(linkLists(listsCy, fixNodes));
+    if (advancedView.value) listsCy.add(linkLists(listsCy, fixNodes, collapsedSections));
 
     fitTextIntoNode(listsCy, ctx);
 
     if (fixNodes.length > 0) {
-        listsCy.edges('.wrap').forEach(edge => {
+        listsCy.edges().filter(edge => edge.hasClass('wrap') && !edge.hasClass('collapsed')).forEach(edge => {
             setSegmentWeights(edge);
         });
     }
@@ -238,11 +246,14 @@ function collectNodes(advancedView, root) {
     };
 }
 
-function createFixList(advancedView, heap) {
+function createFixList(advancedView, heap, collapsedSections = {}) {
     const {
         start,
         elements
-    } = getFixSections(heap);
+    } = getFixSections(heap, collapsedSections);
+    const visibleSections = C.FIX_LIST_SECTIONS.filter(section => Boolean(heap[section]));
+    const visibleSectionCount = visibleSections.length;
+
     if (start) {
         const fixNodes = [];
         const fixY = advancedView.value ? C.ADVANCED_FIX_Y : C.BASIC_FIX_Y;
@@ -250,45 +261,124 @@ function createFixList(advancedView, heap) {
         let i = 0;
 
         do {
-            elements.push({
-                data: {
-                    id: `fix-${curr._id}`,
-                    label: formatHeapNodeLabel(curr, advancedView.value),
-                    bgColor: nodeColor(curr),
-                    parent: `section-${curr.section()}`
-                },
-                classes: 'fix',
-                position: {
-                    x: C.FIX_X + i * C.X_STEP,
-                    y: fixY
-                },
-                grabbable: false
-            });
-
-            const isSingle = curr._next === curr;
-            const isWrapNxt = curr._next === start;
-            const isWrapPrev = curr === start;
-
-            elements.push({
-                data: {
-                    source: `fix-${curr._id}`,
-                    target: `fix-${curr._next._id}`,
-                    label: advancedView.value ? 'next' : ''
-                },
-                classes: isSingle ? 'single-nxt' : isWrapNxt ? 'wrap wrap-nxt' : ''
-            });
-
-            elements.push({
-                data: {
-                    source: `fix-${curr._id}`,
-                    target: `fix-${curr._prev._id}`,
-                    label: advancedView.value ? 'prev' : ''
-                },
-                classes: isSingle ? 'single-prev' : isWrapPrev ? 'wrap wrap-prev' : ''
-            });
+            const section = curr.section();
+            const isCollapsed = collapsedSections[section];
+            let target;
 
             fixNodes.push(curr);
-            curr = curr._next;
+
+            if (isCollapsed) {
+                const isSingle = visibleSectionCount === 1;
+                const isFirstSection = section === visibleSections[0];
+                const isLastSection = section === visibleSections[visibleSectionCount - 1];
+
+                const placeholderId = `placeholder-${section}`;
+                const placeholderX = C.FIX_X + i * C.X_STEP;
+
+                elements.push({
+                    data: {
+                        id: placeholderId,
+                        label: section
+                    },
+                    classes: 'placeholder',
+                    position: {
+                        x: placeholderX,
+                        y: fixY
+                    },
+                    grabbable: false
+                });
+
+                const prev = curr._prev;
+                const prevSection = prev.section();
+                if (collapsedSections[prevSection]) {
+                    target = `placeholder-${prevSection}`;
+                } else {
+                    target = `fix-${prev._id}`;
+                }
+                elements.push({
+                    data: {
+                        source: placeholderId,
+                        target: target,
+                        label: advancedView.value ? 'prev' : ''
+                    },
+                    classes: isSingle ? 'single-prev' : isFirstSection ? 'wrap wrap-prev' : ''
+                });
+
+                const next = curr.getNextSection(section);
+                const nextSection = next.section();
+                if (collapsedSections[nextSection]) {
+                    target = `placeholder-${nextSection}`;
+                } else {
+                    target = `fix-${next._id}`;
+                }
+                elements.push({
+                    data: {
+                        source: placeholderId,
+                        target: target,
+                        label: advancedView.value ? 'next' : ''
+                    },
+                    classes: isSingle ? 'single-nxt' : isLastSection ? 'wrap wrap-nxt' : ''
+                });
+
+                curr = next;
+            } else {
+                elements.push({
+                    data: {
+                        id: `fix-${curr._id}`,
+                        label: formatHeapNodeLabel(curr, advancedView.value),
+                        bgColor: nodeColor(curr),
+                        parent: `section-${section}`
+                    },
+                    classes: 'fix',
+                    position: {
+                        x: C.FIX_X + i * C.X_STEP,
+                        y: fixY
+                    },
+                    grabbable: false
+                });
+
+                const isSingle = curr._next === curr;
+                const isWrapNxt = curr._next === start;
+                const isWrapPrev = curr === start;
+
+                const nextSection = curr._next.section();
+                const prevSection = curr._prev.section();
+                const nextCollapsed = !!collapsedSections[nextSection];
+                const prevCollapsed = !!collapsedSections[prevSection];
+
+                if (nextCollapsed) {
+                    target = `placeholder-${nextSection}`;
+                } else {
+                    target = `fix-${curr._next._id}`;
+                }
+
+                elements.push({
+                    data: {
+                        source: `fix-${curr._id}`,
+                        target: target,
+                        label: advancedView.value ? 'next' : ''
+                    },
+                    classes: isSingle ? 'single-nxt' : isWrapNxt ? 'wrap wrap-nxt' : ''
+                });
+
+                if (prevCollapsed) {
+                    target = `placeholder-${prevSection}`;
+                } else {
+                    target = `fix-${curr._prev._id}`;
+                }
+
+                elements.push({
+                    data: {
+                        source: `fix-${curr._id}`,
+                        target: target,
+                        label: advancedView.value ? 'prev' : ''
+                    },
+                    classes: isSingle ? 'single-prev' : isWrapPrev ? 'wrap wrap-prev' : ''
+                });
+
+                curr = curr._next;
+            }
+
             i++;
         } while (curr !== start);
 
@@ -345,11 +435,13 @@ function createRankList(advancedView, heap) {
     return elements;
 }
 
-function linkLists(listsCy, fixNodes) {
+function linkLists(listsCy, fixNodes, collapsedSections = {}) {
     const elements = [];
 
     fixNodes.forEach(n => {
         if (n.passive()) return;
+        if (collapsedSections[n.section()]) return;
+
         const sourceId = `fix-${n._id}`;
         const targetId = `rank-${n.rank()}`;
 
@@ -437,18 +529,19 @@ function setSegmentWeights(edge) {
 }
 
 // === Utility / Data Extraction Helpers ===
-function getFixSections(heap) {
+function getFixSections(heap, collapsedSections) {
     const elements = [];
     let start = null;
     C.FIX_LIST_SECTIONS.forEach(section => {
         if (!heap[section]) return;
         if (!start) start = heap[section];
+        const isCollapsed = !!collapsedSections[section];
         elements.push({
             data: {
                 id: `section-${section}`,
                 label: section,
             },
-            classes: 'section',
+            classes: joinClasses('section', isCollapsed ? 'collapsed' : ''),
             grabbable: false
         });
     });

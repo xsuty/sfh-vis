@@ -200,6 +200,21 @@ export const LISTS_CY_STYLE = [
         },
     },
     {
+        selector: 'node.placeholder',
+        style: {
+            shape: 'ellipse',
+            width: 30,
+            height: 30,
+            'background-color': '#95a5a6',
+            color: '#000',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'font-size': 12,
+            'border-width': 2,
+            'border-color': '#7f8c8d'
+        }
+    },
+    {
         selector: 'node.fix',
         style: {
             'background-color': 'data(bgColor)',
@@ -361,5 +376,17 @@ export const LISTS_CY_STYLE = [
         style: {
             opacity: 0.14,
         },
+    },
+    {
+        selector: 'node.collapsed',
+        style: {
+            display: 'none'
+        }
+    },
+    {
+        selector: 'edge.collapsed',
+        style: {
+            display: 'none'
+        }
     },
 ];
