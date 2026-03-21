@@ -26,7 +26,7 @@
         <div id="status" class="status">{{ statusText }}</div>
         <!-- ===== Controls ===== -->
         <div class="controls">
-            <input type="number" placeholder="New key to insert" v-model.number="inputValue" min="0" step="1" autocomplete="off" />
+            <input type="number" placeholder="New key to insert" v-model.number="inputValue" step="1" autocomplete="off" inputmode="numeric" pattern="-?\d*" />
             <button @click="insert" :disabled="!canInsert">Insert</button>
             <button @click="removeMin" :disabled="!canDeleteMin">Delete-min</button>
             <button @click="meldHeaps" :disabled="!canMeldHeaps">Meld Heaps</button>
@@ -88,7 +88,7 @@
                 <h3>Node Operations</h3>
                 <div class="operation">
                     <label for="newKeyInput">Decrease Key:</label>
-                    <input id="newKeyInput" type="number" placeholder="New key" v-model.number="newKeyInput" min="0" step="1" autocomplete="off" />
+                    <input id="newKeyInput" type="number" placeholder="New key" v-model.number="newKeyInput" step="1" autocomplete="off" inputmode="numeric" pattern="-?\d*" />
                     <button id="confirmDecreaseKey" :disabled="stepping" @click="decreaseKey(newKeyInput)">
                         Update Key
                     </button>

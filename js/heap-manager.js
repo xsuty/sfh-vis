@@ -51,6 +51,14 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         renderCy();
     }
 
+    function validateIntegerKey(value) {
+        if (value === null || value === undefined || value === '') return false;
+        const numberValue = Number(value);
+        if (Number.isNaN(numberValue)) return false;
+        if (!Number.isInteger(numberValue)) return false;
+        return true;
+    }
+
     function meldHeaps() {
         if (appState.getHeapCount() < 2) throw new Error('state inconsistency: should not be able to meld heaps when less than 2 heaps exist');
         mergeState.value.mode = true;
@@ -117,10 +125,16 @@ export function getHeapManager(appState, stepsManager, renderCy) {
             alert('Please enter a value to insert');
             return;
         }
+        if (!validateIntegerKey(inputValue.value)) {
+            alert('Please enter an integer value for the key');
+            return;
+        }
+
+        const value = Number(inputValue.value);
 
         const heap = appState.getCurrentHeap();
-        console.log(`Inserting ${inputValue.value} into heap ${heap._heapId}`);
-        const steps = heap.insert(inputValue.value);
+        console.log(`Inserting ${value} into heap ${heap._heapId}`);
+        const steps = heap.insert(value);
         inputValue.value = null;
         stepsManager.startSteps(steps);
     }
@@ -138,15 +152,20 @@ export function getHeapManager(appState, stepsManager, renderCy) {
 
     function decreaseKey(newKey) {
         if (isBusy() || !appState.selectedNode.value) throw new Error('state inconsistency: should not be able to decrease key while busy or with no selected node');
+        if (!validateIntegerKey(newKey)) {
+            alert('Please enter an integer value for the new key');
+            return;
+        }
 
-        const heap = appState.getCurrentHeap();
-        if (newKey >= appState.selectedNode.value._key) {
+        const keyValue = Number(newKey);
+        if (keyValue >= appState.selectedNode.value._key) {
             alert('New key must be smaller than current key');
             return;
         }
 
-        console.log(`Decreasing key of node ${appState.selectedNode.value._key} to ${newKey} in heap ${heap._heapId}`);
-        const steps = heap.decreaseKey(appState.selectedNode.value, newKey);
+        const heap = appState.getCurrentHeap();
+        console.log(`Decreasing key of node ${appState.selectedNode.value._key} to ${keyValue} in heap ${heap._heapId}`);
+        const steps = heap.decreaseKey(appState.selectedNode.value, keyValue);
         stepsManager.startSteps(steps);
 
         appState.selectedNode.value = null;
