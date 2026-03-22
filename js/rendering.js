@@ -274,11 +274,12 @@ function createFixList(advancedView, heap, collapsedSections = {}) {
 
                 const placeholderId = `placeholder-${section}`;
                 const placeholderX = C.FIX_X + i * C.X_STEP;
+                const placeholderCount = countFixSectionNodes(heap[section]);
 
                 elements.push({
                     data: {
                         id: placeholderId,
-                        label: section.replace(/^_/, '')
+                        label: formatSectionLabel(section, placeholderCount)
                     },
                     classes: 'placeholder',
                     position: {
@@ -343,8 +344,8 @@ function createFixList(advancedView, heap, collapsedSections = {}) {
 
                 const nextSection = curr._next.section();
                 const prevSection = curr._prev.section();
-                const nextCollapsed = !!collapsedSections[nextSection];
-                const prevCollapsed = !!collapsedSections[prevSection];
+                const nextCollapsed = collapsedSections[nextSection];
+                const prevCollapsed = collapsedSections[prevSection];
 
                 if (nextCollapsed) {
                     target = `placeholder-${nextSection}`;
@@ -529,17 +530,34 @@ function setSegmentWeights(edge) {
 }
 
 // === Utility / Data Extraction Helpers ===
+function countFixSectionNodes(head) {
+    if (!head) throw new Error('Section cannot be empty');
+    let section = head.section();
+    let count = 1;
+    let current = head._next;
+    while (current !== head && current.section() === section) {
+        count++;
+        current = current._next;
+    }
+    return count;
+}
+
+function formatSectionLabel(section, count) {
+    return `${section.replace(/^_/, '')} (${count})`;
+}
+
 function getFixSections(heap, collapsedSections) {
     const elements = [];
     let start = null;
     C.FIX_LIST_SECTIONS.forEach(section => {
         if (!heap[section]) return;
         if (!start) start = heap[section];
-        const isCollapsed = !!collapsedSections[section];
+        const isCollapsed = collapsedSections[section];
+        const sectionCount = countFixSectionNodes(heap[section]);
         elements.push({
             data: {
                 id: `section-${section}`,
-                label: section.replace(/^_/, ''),
+                label: formatSectionLabel(section, sectionCount),
             },
             classes: joinClasses('section', isCollapsed ? 'collapsed' : ''),
             grabbable: false
