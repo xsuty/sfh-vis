@@ -278,7 +278,7 @@ function createFixList(advancedView, heap, collapsedSections = {}) {
                 elements.push({
                     data: {
                         id: placeholderId,
-                        label: section
+                        label: section.replace(/^_/, '')
                     },
                     classes: 'placeholder',
                     position: {
@@ -539,7 +539,7 @@ function getFixSections(heap, collapsedSections) {
         elements.push({
             data: {
                 id: `section-${section}`,
-                label: section,
+                label: section.replace(/^_/, ''),
             },
             classes: joinClasses('section', isCollapsed ? 'collapsed' : ''),
             grabbable: false
