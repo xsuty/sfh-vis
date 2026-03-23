@@ -64,6 +64,11 @@ input {
     font-size: 16px;
 }
 
+#new-key-input {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
 /* Header */
 .header-bar {
     display: flex;

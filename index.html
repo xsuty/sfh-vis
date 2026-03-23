@@ -38,23 +38,23 @@
             <button v-for="(heap, index) in heaps" :key="heap._heapId" :class="['tab-btn', heapTabClasses[index]]" @click="clickHeap(index)" :disabled="stepping">
                 Heap {{ heap._heapId }}
             </button>
-            <button id="addHeap" @click="!stepping && !mergeState.mode && addHeap()" :disabled="heaps.length >= MAX_HEAPS || stepping || mergeState.mode">
+            <button id="add-heap" @click="!stepping && !mergeState.mode && addHeap()" :disabled="heaps.length >= MAX_HEAPS || stepping || mergeState.mode">
                 + New Heap
             </button>
-            <button id="deleteHeap" @click="!stepping && !mergeState.mode && deleteHeap(currentHeapIndex)" :disabled="stepping || mergeState.mode || heaps.length === 1">
+            <button id="delete-heap" @click="!stepping && !mergeState.mode && deleteHeap(currentHeapIndex)" :disabled="stepping || mergeState.mode || heaps.length === 1">
                 Delete Heap
             </button>
-            <button id="exportHeap" @click="exportHeap()" :disabled="!canExportHeap">
+            <button id="export-heap" @click="exportHeap()" :disabled="!canExportHeap">
                 Export Heap
             </button>
-            <button id="importHeap" @click="triggerImportHeap()" :disabled="stepping || mergeState.mode">
+            <button id="import-heap" @click="triggerImportHeap()" :disabled="stepping || mergeState.mode">
                 Import Heap
             </button>
-            <input type="file" id="importHeapFile" accept=".json" @change="handleImportFile" style="display: none;" />
+            <input type="file" id="import-heap-file" accept=".json" @change="handleImportFile" style="display: none;" />
         </div>
         <!-- ===== Main Visualization ===== -->
         <div class="main-vis-container">
-            <div id="stepLog" class="step-log">
+            <div id="step-log" class="step-log">
                 <h3>Step Log</h3>
                 <div v-for="(log, i) in stepLogs" :style="logStyles[i]">{{ log.text }}</div>
             </div>
@@ -72,8 +72,8 @@
             </div>
         </div>
         <!-- ===== Drawer ===== -->
-        <div id="heapDrawer" :class="['drawer', drawerOpen ? 'open' : '']">
-            <div id="drawerHandle" class="drawer-handle"></div>
+        <div id="heap-drawer" :class="['drawer', drawerOpen ? 'open' : '']">
+            <div id="drawer-handle" class="drawer-handle"></div>
             <button class="drawer-toggle" @click="drawerOpen = !drawerOpen">
                 {{ drawerOpen ? '▼ Hide Lists' : '▲ Show Lists' }}
             </button>
@@ -88,21 +88,21 @@
             </div>
         </div>
         <!-- ===== Node Modal ===== -->
-        <div id="nodeModal" class="modal" v-show="nodeModalOpen">
+        <div id="node-modal" class="modal" v-show="nodeModalOpen">
             <div class="modal-content">
                 <span id="close-modal" class="close" @click="nodeModalOpen = false">&times;</span>
                 <h3>Node Operations</h3>
                 <div class="operation">
-                    <label for="newKeyInput">Decrease Key:</label>
-                    <input id="newKeyInput" type="number" placeholder="New key" v-model.number="newKeyInput" step="1" autocomplete="off" inputmode="numeric" pattern="-?\d*" />
-                    <button id="confirmDecreaseKey" :disabled="stepping" @click="decreaseKey(newKeyInput)">
+                    <label for="new-key-input">Decrease Key:</label>
+                    <input id="new-key-input" type="number" placeholder="New key" v-model.number="newKeyInput" step="1" autocomplete="off" inputmode="numeric" pattern="-?\d*" />
+                    <button id="confirm-decrease-key" :disabled="stepping" @click="decreaseKey(newKeyInput)">
                         Update Key
                     </button>
                 </div>
                 <hr />
                 <div class="operation">
-                    <label for="deleteNode">Delete Node:</label>
-                    <button id="deleteNode" class="delete-btn" :disabled="stepping" @click="deleteNode()">
+                    <label for="delete-node">Delete Node:</label>
+                    <button id="delete-node" class="delete-btn" :disabled="stepping" @click="deleteNode()">
                         Delete
                     </button>
                 </div>

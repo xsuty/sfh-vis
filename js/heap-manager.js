@@ -2,7 +2,8 @@ import {
     Heap
 } from './heap.js';
 import {
-    MAX_HEAPS
+    MAX_HEAPS,
+    IMPORT_HEAP_FILE_DOM
 } from './constants.js';
 const {
     ref
@@ -218,7 +219,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
     function triggerImportHeap() {
         if (isBusy()) throw new Error('state inconsistency: should not be able to import while busy');
 
-        const fileInput = document.getElementById('importHeapFile');
+        const fileInput = document.getElementById(IMPORT_HEAP_FILE_DOM);
         fileInput.click();
     }
 

@@ -47,4 +47,5 @@ export const MAX_DRAWER_HEIGHT_OFFSET = 100;
 // DOM ids
 export const LISTS_CY_DOM = 'lists-cy';
 export const HEAP_CY_DOM = 'heap-cy';
-export const DRAWER_HANDLE_DOM = 'drawerHandle';
+export const DRAWER_HANDLE_DOM = 'drawer-handle';
+export const IMPORT_HEAP_FILE_DOM = 'import-heap-file';
