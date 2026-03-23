@@ -216,148 +216,140 @@ function createFixList(advancedView, heap, collapsedSections = {}) {
         start,
         elements
     } = getFixSections(heap, collapsedSections);
-    const visibleSections = C.FIX_LIST_SECTIONS.filter(section => Boolean(heap[section]));
-    const visibleSectionCount = visibleSections.length;
 
-    if (start) {
-        const fixNodes = [];
-        const fixY = advancedView.value ? C.ADVANCED_FIX_Y : C.BASIC_FIX_Y;
-        let curr = start;
-        let i = 0;
-
-        do {
-            const section = curr.section();
-            const isCollapsed = collapsedSections[section];
-            let target;
-
-            fixNodes.push(curr);
-
-            if (isCollapsed) {
-                const isSingle = visibleSectionCount === 1;
-                const isFirstSection = section === visibleSections[0];
-                const isLastSection = section === visibleSections[visibleSectionCount - 1];
-
-                const placeholderId = `placeholder-${section}`;
-                const placeholderX = C.FIX_X + i * C.X_STEP;
-                const placeholderCount = countFixSectionNodes(heap[section]);
-
-                elements.push({
-                    data: {
-                        id: placeholderId,
-                        label: formatSectionLabel(section, placeholderCount)
-                    },
-                    classes: 'placeholder',
-                    position: {
-                        x: placeholderX,
-                        y: fixY
-                    },
-                    grabbable: false
-                });
-
-                const prev = curr._prev;
-                const prevSection = prev.section();
-                if (collapsedSections[prevSection]) {
-                    target = `placeholder-${prevSection}`;
-                } else {
-                    target = `fix-${prev._id}`;
-                }
-                elements.push({
-                    data: {
-                        source: placeholderId,
-                        target: target,
-                        label: advancedView.value ? 'prev' : ''
-                    },
-                    classes: isSingle ? 'single-prev' : isFirstSection ? 'wrap wrap-prev' : ''
-                });
-
-                const next = curr.getNextSection(section);
-                const nextSection = next.section();
-                if (collapsedSections[nextSection]) {
-                    target = `placeholder-${nextSection}`;
-                } else {
-                    target = `fix-${next._id}`;
-                }
-                elements.push({
-                    data: {
-                        source: placeholderId,
-                        target: target,
-                        label: advancedView.value ? 'next' : ''
-                    },
-                    classes: isSingle ? 'single-nxt' : isLastSection ? 'wrap wrap-nxt' : ''
-                });
-
-                curr = next;
-            } else {
-                elements.push({
-                    data: {
-                        id: `fix-${curr._id}`,
-                        label: formatHeapNodeLabel(curr, advancedView.value),
-                        bgColor: nodeColor(curr),
-                        parent: `section-${section}`
-                    },
-                    classes: 'fix',
-                    position: {
-                        x: C.FIX_X + i * C.X_STEP,
-                        y: fixY
-                    },
-                    grabbable: false
-                });
-
-                const isSingle = curr._next === curr;
-                const isWrapNxt = curr._next === start;
-                const isWrapPrev = curr === start;
-
-                const nextSection = curr._next.section();
-                const prevSection = curr._prev.section();
-                const nextCollapsed = collapsedSections[nextSection];
-                const prevCollapsed = collapsedSections[prevSection];
-
-                if (nextCollapsed) {
-                    target = `placeholder-${nextSection}`;
-                } else {
-                    target = `fix-${curr._next._id}`;
-                }
-
-                elements.push({
-                    data: {
-                        source: `fix-${curr._id}`,
-                        target: target,
-                        label: advancedView.value ? 'next' : ''
-                    },
-                    classes: isSingle ? 'single-nxt' : isWrapNxt ? 'wrap wrap-nxt' : ''
-                });
-
-                if (prevCollapsed) {
-                    target = `placeholder-${prevSection}`;
-                } else {
-                    target = `fix-${curr._prev._id}`;
-                }
-
-                elements.push({
-                    data: {
-                        source: `fix-${curr._id}`,
-                        target: target,
-                        label: advancedView.value ? 'prev' : ''
-                    },
-                    classes: isSingle ? 'single-prev' : isWrapPrev ? 'wrap wrap-prev' : ''
-                });
-
-                curr = curr._next;
-            }
-
-            i++;
-        } while (curr !== start);
-
+    if (!start) {
         return {
             elements,
-            fixNodes
+            fixNodes: []
         };
     }
 
+    const visibleSections = C.FIX_LIST_SECTIONS.filter(section => Boolean(heap[section]));
+    const visibleSectionCount = visibleSections.length;
+    const fixNodes = [];
+    const fixY = advancedView.value ? C.ADVANCED_FIX_Y : C.BASIC_FIX_Y;
+
+    let curr = start;
+    let i = 0;
+
+    do {
+        const section = curr.section();
+        const isCollapsed = Boolean(collapsedSections[section]);
+
+        fixNodes.push(curr);
+
+        if (isCollapsed) {
+            curr = appendCollapsedSection(elements, heap, curr, section, fixY, i, visibleSectionCount, visibleSections, collapsedSections, advancedView.value);
+        } else {
+            curr = appendFixListNode(elements, curr, section, fixY, i, start, collapsedSections, advancedView.value);
+        }
+
+        i++;
+    } while (curr !== start);
+
     return {
         elements,
-        fixNodes: []
+        fixNodes
     };
+}
+
+function appendCollapsedSection(elements, heap, currentNode, section, fixY, index, visibleSectionCount, visibleSections, collapsedSections, advanced) {
+    const placeholderId = `placeholder-${section}`;
+    const placeholderX = C.FIX_X + index * C.X_STEP;
+    const placeholderCount = countFixSectionNodes(heap[section]);
+
+    elements.push({
+        data: {
+            id: placeholderId,
+            label: formatSectionLabel(section, placeholderCount)
+        },
+        classes: 'placeholder',
+        position: {
+            x: placeholderX,
+            y: fixY
+        },
+        grabbable: false
+    });
+
+    const isSingle = visibleSectionCount === 1;
+    const isFirstSection = section === visibleSections[0];
+    const isLastSection = section === visibleSections[visibleSectionCount - 1];
+
+    const prev = currentNode._prev;
+    const prevSection = prev.section();
+    const prevTarget = collapsedSections[prevSection] ? `placeholder-${prevSection}` : `fix-${prev._id}`;
+
+    elements.push({
+        data: {
+            source: placeholderId,
+            target: prevTarget,
+            label: advanced ? 'prev' : ''
+        },
+        classes: isSingle ? 'single-prev' : isFirstSection ? 'wrap wrap-prev' : ''
+    });
+
+    const next = currentNode.getNextSection(section);
+    const nextSection = next.section();
+    const nextTarget = collapsedSections[nextSection] ? `placeholder-${nextSection}` : `fix-${next._id}`;
+
+    elements.push({
+        data: {
+            source: placeholderId,
+            target: nextTarget,
+            label: advanced ? 'next' : ''
+        },
+        classes: isSingle ? 'single-nxt' : isLastSection ? 'wrap wrap-nxt' : ''
+    });
+
+    return next;
+}
+
+function appendFixListNode(elements, currentNode, section, fixY, index, startNode, collapsedSections, advanced) {
+    elements.push({
+        data: {
+            id: `fix-${currentNode._id}`,
+            label: formatHeapNodeLabel(currentNode, advanced),
+            bgColor: nodeColor(currentNode),
+            parent: `section-${section}`
+        },
+        classes: 'fix',
+        position: {
+            x: C.FIX_X + index * C.X_STEP,
+            y: fixY
+        },
+        grabbable: false
+    });
+
+    const isSingle = currentNode._next === currentNode;
+    const isWrapNxt = currentNode._next === startNode;
+    const isWrapPrev = currentNode === startNode;
+
+    const nextSection = currentNode._next.section();
+    const prevSection = currentNode._prev.section();
+    const nextCollapsed = Boolean(collapsedSections[nextSection]);
+    const prevCollapsed = Boolean(collapsedSections[prevSection]);
+
+    const nextTarget = nextCollapsed ? `placeholder-${nextSection}` : `fix-${currentNode._next._id}`;
+    elements.push({
+        data: {
+            source: `fix-${currentNode._id}`,
+            target: nextTarget,
+            label: advanced ? 'next' : ''
+        },
+        classes: isSingle ? 'single-nxt' : isWrapNxt ? 'wrap wrap-nxt' : ''
+    });
+
+    const prevTarget = prevCollapsed ? `placeholder-${prevSection}` : `fix-${currentNode._prev._id}`;
+    elements.push({
+        data: {
+            source: `fix-${currentNode._id}`,
+            target: prevTarget,
+            label: advanced ? 'prev' : ''
+        },
+        classes: isSingle ? 'single-prev' : isWrapPrev ? 'wrap wrap-prev' : ''
+    });
+
+    return currentNode._next;
 }
 
 function createRankList(advancedView, heap) {
