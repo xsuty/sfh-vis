@@ -17,11 +17,26 @@ export function setupNodeClick(cy, appState, isBusy) {
 }
 
 export function setupNodeInspect(cy, appState) {
+    let lockedInspectNodeId = null;
+
     cy.on('mouseover', 'node', (evt) => {
+        if (lockedInspectNodeId) return;
         applyInspectFocus(cy, appState, evt.target.id());
     });
 
     cy.on('mouseout', 'node', () => {
+        if (lockedInspectNodeId) return;
+        applyInspectFocus(cy, appState, null);
+    });
+
+    cy.on('cxttap', 'node', (evt) => {
+        const nodeId = evt.target.id();
+        lockedInspectNodeId = nodeId;
+        applyInspectFocus(cy, appState, nodeId);
+    });
+
+    cy.on('tap', () => {
+        lockedInspectNodeId = null;
         applyInspectFocus(cy, appState, null);
     });
 }
