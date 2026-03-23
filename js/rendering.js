@@ -1,8 +1,8 @@
 import * as C from './constants.js';
 
 // === Public UI Functions ===
-export function setupNodeClick(heapCy, appState, isBusy) {
-    heapCy.on('tap', 'node', (evt) => {
+export function setupNodeClick(cy, appState, isBusy) {
+    cy.on('tap', 'node', (evt) => {
         if (isBusy()) return;
 
         const nodeId = evt.target.id();
@@ -12,47 +12,17 @@ export function setupNodeClick(heapCy, appState, isBusy) {
         appState.selectedNode.value = heapNode;
         appState.newKeyInput.value = heapNode._key;
         appState.nodeModalOpen.value = true;
-        applyInspectFocus(heapCy, appState, nodeId);
-    });
-
-    heapCy.on('mouseover', 'node', (evt) => {
-        applyInspectFocus(heapCy, appState, evt.target.id());
-    });
-
-    heapCy.on('mouseout', 'node', () => {
-        const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
-        applyInspectFocus(heapCy, appState, selectedId);
-    });
-
-    heapCy.on('tap', (evt) => {
-        if (evt.target !== heapCy) return;
-        const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
-        applyInspectFocus(heapCy, appState, selectedId);
+        applyInspectFocus(cy, appState, null);
     });
 }
 
-export function setupListsInspect(listsCy, appState) {
-    function processNonSectionNode(evt, callback) {
-        const target = evt.target;
-        if (target.hasClass('section')) return;
-        callback(target.id());
-    }
-
-    listsCy.on('mouseover', 'node', (evt) => {
-        processNonSectionNode(evt, (id) => applyListInspectFocus(listsCy, appState.advancedView, [id]));
+export function setupNodeInspect(cy, appState) {
+    cy.on('mouseover', 'node', (evt) => {
+        applyInspectFocus(cy, appState, evt.target.id());
     });
 
-    listsCy.on('mouseout', 'node', () => {
-        applyListInspectFromSelection(listsCy, appState.advancedView, appState.selectedNode.value);
-    });
-
-    listsCy.on('tap', 'node', (evt) => {
-        processNonSectionNode(evt, (id) => applyListInspectFocus(listsCy, appState.advancedView, [id]));
-    });
-
-    listsCy.on('tap', (evt) => {
-        if (evt.target !== listsCy) return;
-        applyListInspectFromSelection(listsCy, appState.advancedView, appState.selectedNode.value);
+    cy.on('mouseout', 'node', () => {
+        applyInspectFocus(cy, appState, null);
     });
 }
 
@@ -141,9 +111,6 @@ export function renderHeap(appState, heapCy) {
     });
 
     heapCy.fit(undefined, C.HEAP_PADDING);
-
-    const selectedId = appState.selectedNode.value ? `n${appState.selectedNode.value._id}` : null;
-    applyInspectFocus(heapCy, appState, selectedId);
 }
 
 export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixListConfig = {}) {
@@ -172,8 +139,6 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixL
     }
 
     listsCy.fit(undefined, C.LISTS_PADDING);
-
-    applyListInspectFromSelection(listsCy, advancedView, selectedNode.value);
 }
 
 // === Internal Rendering Helpers ===
@@ -630,58 +595,17 @@ function applyInspectFocus(heapCy, appState, focusedId) {
 
     const focusNode = heapCy.getElementById(focusedId);
     if (focusNode.empty()) return;
+    if (focusNode.hasClass('section')) return;
 
     const neighborhoodEdges = focusNode.connectedEdges();
     const neighborhoodNodes = neighborhoodEdges.connectedNodes().union(focusNode);
     const highlighted = neighborhoodNodes.union(neighborhoodEdges);
+    const keepVisible = highlighted.union(neighborhoodNodes.parents());
 
-    heapCy.elements().difference(highlighted).addClass('inspect-dim');
+    heapCy.elements().difference(keepVisible).addClass('inspect-dim');
     neighborhoodNodes.difference(focusNode).addClass('inspect-context');
     neighborhoodEdges.addClass('inspect-context');
     focusNode.addClass('inspect-focus');
-}
-
-function applyListInspectFromSelection(listsCy, advancedView, selectedNode) {
-    if (!selectedNode) {
-        applyListInspectFocus(listsCy, advancedView, []);
-        return;
-    }
-
-    applyListInspectFocus(listsCy, advancedView, [
-        `fix-${selectedNode._id}`,
-        `rank-${selectedNode.rank()}`
-    ]);
-}
-
-function applyListInspectFocus(listsCy, advancedView, focusedIds) {
-    const classes = ['inspect-focus', 'inspect-context', 'inspect-dim'];
-    listsCy.elements().removeClass(classes.join(' '));
-
-    if (!advancedView.value || focusedIds.length === 0) return;
-
-    let focused = listsCy.collection();
-    for (const id of focusedIds) {
-        const node = listsCy.getElementById(id);
-        if (!node.empty()) focused = focused.union(node);
-    }
-
-    if (focused.empty()) return;
-
-    let neighborhoodEdges = listsCy.collection();
-    focused.forEach((node) => {
-        neighborhoodEdges = neighborhoodEdges.union(node.connectedEdges());
-    });
-
-    const neighborhoodNodes = neighborhoodEdges.connectedNodes().union(focused);
-    const highlighted = neighborhoodNodes.union(neighborhoodEdges);
-
-    // Keep compound parents visible so highlighted child nodes do not get dimmed by parent opacity.
-    const keepVisible = highlighted.union(neighborhoodNodes.parents());
-
-    listsCy.elements().difference(keepVisible).addClass('inspect-dim');
-    neighborhoodNodes.difference(focused).addClass('inspect-context');
-    neighborhoodEdges.addClass('inspect-context');
-    focused.addClass('inspect-focus');
 }
 
 function joinClasses(...classes) {

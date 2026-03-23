@@ -16,7 +16,7 @@ import {
     renderHeap,
     renderLists,
     setupNodeClick,
-    setupListsInspect,
+    setupNodeInspect,
     makeDrawerResizable
 } from './rendering.js';
 import {
@@ -108,7 +108,8 @@ createApp({
             initHeapCy(document.getElementById(C.HEAP_CY_DOM));
             initListsCy(document.getElementById(C.LISTS_CY_DOM));
             setupNodeClick(heapCy, appState, heapManager.isBusy);
-            setupListsInspect(listsCy, appState);
+            setupNodeInspect(heapCy, appState);
+            setupNodeInspect(listsCy, appState);
             makeDrawerResizable({
                 drawerOpen: appState.drawerOpen,
                 drawerHeight: appState.drawerHeight,
