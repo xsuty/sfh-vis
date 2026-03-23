@@ -17,6 +17,7 @@ import {
     renderLists,
     setupNodeClick,
     setupNodeInspect,
+    setupPlaceholderClick,
     makeDrawerResizable
 } from './rendering.js';
 import {
@@ -103,6 +104,7 @@ createApp({
             setupNodeClick(heapCy, appState, heapManager.isBusy);
             setupNodeInspect(heapCy, appState);
             setupNodeInspect(listsCy, appState);
+            setupPlaceholderClick(listsCy, appState);
             makeDrawerResizable({
                 drawerOpen: appState.drawerOpen,
                 drawerHeight: appState.drawerHeight,

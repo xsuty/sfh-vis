@@ -211,7 +211,8 @@ export const LISTS_CY_STYLE = [
             'text-halign': 'center',
             'font-size': 12,
             'border-width': 2,
-            'border-color': '#7f8c8d'
+            'border-color': '#7f8c8d',
+            'cursor': 'pointer'
         }
     },
     {

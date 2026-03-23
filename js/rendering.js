@@ -26,6 +26,24 @@ export function setupNodeInspect(cy, appState) {
     });
 }
 
+export function setupPlaceholderClick(listsCy, appState) {
+    if (!listsCy) throw new Error('listsCy not initialized');
+
+    listsCy.on('tap', 'node.placeholder', (evt) => {
+        const nodeId = evt.target.id();
+        const match = nodeId.match(/^placeholder-(.+)$/);
+        if (!match) return;
+
+        const section = match[1];
+        if (!C.FIX_LIST_SECTIONS.includes(section)) return;
+
+        appState.fixListCollapsedSections.value = {
+            ...appState.fixListCollapsedSections.value,
+            [section]: !appState.fixListCollapsedSections.value[section]
+        };
+    });
+}
+
 export function makeDrawerResizable({
     drawerOpen,
     drawerHeight,
@@ -614,13 +632,13 @@ function formatRankLabel(rankNode, advanced) {
     return `Rank: ${rankNode._rank}\nRefs: ${rankNode._refCount}`;
 }
 
-function applyInspectFocus(heapCy, appState, focusedId) {
+function applyInspectFocus(cy, appState, focusedId) {
     const classes = ['inspect-focus', 'inspect-context', 'inspect-dim'];
-    heapCy.elements().removeClass(classes.join(' '));
+    cy.elements().removeClass(classes.join(' '));
 
     if (!appState.advancedView.value || !focusedId) return;
 
-    const focusNode = heapCy.getElementById(focusedId);
+    const focusNode = cy.getElementById(focusedId);
     if (focusNode.empty()) return;
     if (focusNode.hasClass('section')) return;
 
@@ -629,7 +647,7 @@ function applyInspectFocus(heapCy, appState, focusedId) {
     const highlighted = neighborhoodNodes.union(neighborhoodEdges);
     const keepVisible = highlighted.union(neighborhoodNodes.parents());
 
-    heapCy.elements().difference(keepVisible).addClass('inspect-dim');
+    cy.elements().difference(keepVisible).addClass('inspect-dim');
     neighborhoodNodes.difference(focusNode).addClass('inspect-context');
     neighborhoodEdges.addClass('inspect-context');
     focusNode.addClass('inspect-focus');
