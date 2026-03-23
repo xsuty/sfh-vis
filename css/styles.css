@@ -213,6 +213,12 @@ input {
     font-size: 13px;
 }
 
+.fix-list-toolbar button.collapsed {
+    background-color: #e0e0e0;
+    color: #666;
+    border-color: #bbb;
+}
+
 .drawer-handle {
     height: 8px;
     cursor: ns-resize;

@@ -80,7 +80,7 @@
             <div class="drawer-content" v-show="drawerOpen">
                 <div class="fix-list-toolbar">
                     <span>Collapsible sections:</span>
-                    <button v-for="section in fixListSections" :key="section" @click="toggleFixListSection(section)">
+                    <button v-for="section in fixListSections" :key="section" @click="toggleFixListSection(section)" :class="{ collapsed: fixListCollapsedSections[section] }">
                         {{ section.replace(/^_/, '') }}
                     </button>
                 </div>
