@@ -124,7 +124,11 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixL
         elements: fixElements,
         fixNodes
     } = createFixList(advancedView, heap, collapsedSections);
-    const rankElements = createRankList(advancedView, heap);
+
+    const fixBounds = getXBounds(fixElements);
+    const rankOffset = getRankOffset(fixBounds, getRankCount(heap));
+    const rankElements = createRankList(advancedView, heap, rankOffset);
+
     assertNoDuplicateIds([...fixElements, ...rankElements]);
     listsCy.add([...fixElements, ...rankElements]);
 
@@ -142,6 +146,27 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixL
 }
 
 // === Internal Rendering Helpers ===
+function getXBounds(elements) {
+    const xs = elements
+        .filter(el => el.position && typeof el.position.x === 'number')
+        .map(el => el.position.x);
+    if (xs.length === 0) return null;
+    return {
+        min: Math.min(...xs),
+        max: Math.max(...xs)
+    };
+}
+
+function getRankOffset(fixBounds, rankCount) {
+    if (!fixBounds || rankCount === 0) return 0;
+
+    const fixCenter = (fixBounds.min + fixBounds.max) / 2;
+    const rankSpan = (rankCount - 1) * C.X_STEP;
+    const rankCenter = C.RANK_X + rankSpan / 2;
+
+    return fixCenter - rankCenter;
+}
+
 function collectNodes(advancedView, root) {
     const nodes = [];
     const edges = [];
@@ -352,7 +377,7 @@ function appendFixListNode(elements, currentNode, section, fixY, index, startNod
     return currentNode._next;
 }
 
-function createRankList(advancedView, heap) {
+function createRankList(advancedView, heap, xOffset = 0) {
     const elements = [];
     let r = heap._rankList;
     let j = 0;
@@ -365,7 +390,7 @@ function createRankList(advancedView, heap) {
             },
             classes: 'rank',
             position: {
-                x: C.RANK_X + j * C.X_STEP,
+                x: C.RANK_X + j * C.X_STEP + xOffset,
                 y: C.RANK_Y
             },
             grabbable: false
@@ -391,6 +416,16 @@ function createRankList(advancedView, heap) {
     }
 
     return elements;
+}
+
+function getRankCount(heap) {
+    let count = 0;
+    let r = heap._rankList;
+    while (r) {
+        count++;
+        r = r._inc;
+    }
+    return count;
 }
 
 function linkLists(listsCy, fixNodes, collapsedSections = {}) {
