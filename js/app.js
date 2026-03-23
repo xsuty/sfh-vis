@@ -97,13 +97,6 @@ createApp({
             };
         }
 
-        function toggleAllFixListSections() {
-            const allCollapsed = Object.values(appState.fixListCollapsedSections.value).every(v => v);
-            appState.fixListCollapsedSections.value = Object.fromEntries(
-                C.FIX_LIST_SECTIONS.map(section => [section, !allCollapsed])
-            );
-        }
-
         onMounted(() => {
             initHeapCy(document.getElementById(C.HEAP_CY_DOM));
             initListsCy(document.getElementById(C.LISTS_CY_DOM));
@@ -126,7 +119,6 @@ createApp({
             ...ui,
             fixListSections: C.FIX_LIST_SECTIONS,
             toggleFixListSection,
-            toggleAllFixListSections,
             MAX_HEAPS: C.MAX_HEAPS
         };
     }
