@@ -10,6 +10,8 @@ An interactive web-based visualization tool for understanding and experimenting 
 - 📚 **Step-by-Step Execution**: Visualize algorithm steps to understand the internal mechanics
 - 🌳 **Multiple Heaps**: Work with multiple heaps simultaneously and merge them together
 - 📊 **Dynamic Visualization**: Real-time graph rendering with Cytoscape and a custom tidy-tree layout
+- 🎚️ **List View Controls**: Height slider for list rows and collapsible list sections for clean navigation
+- 🧭 **Interactive Explore Mode**: In advanced mode, right-clicking a node locks inspect mode; left-clicking collapsed section nodes in lists view expands that section
 - 🔬 **Advanced Mode**: Detailed operation information for deeper learning
 - 💾 **Data Persistence**: Export and import heap states as JSON
 - 🛠️ **Developer Tools**: ESLint, stylelint, and HTMLHint for code quality
