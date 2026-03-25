@@ -84,7 +84,17 @@
                         {{ section.replace(/^_/, '') }}
                     </button>
                 </div>
-                <div id="lists-cy" :style="listsCyStyle"></div>
+                <div class="drawer-body">
+                    <div class="slider-sidebar">
+                        <div class="gap-control">
+                            <label for="gap-slider">Fix↔Rank gap: {{ fixRankGap }}px</label>
+                            <div class="vertical-slider-wrapper">
+                                <input id="gap-slider" type="range" :min="FIX_RANK_GAP_MIN" :max="FIX_RANK_GAP_MAX" step="1" v-model.number="fixRankGap" class="vertical-slider" />
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lists-cy" :style="listsCyStyle"></div>
+                </div>
             </div>
         </div>
         <!-- ===== Node Modal ===== -->

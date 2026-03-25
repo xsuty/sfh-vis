@@ -250,6 +250,98 @@ input {
     flex-direction: column;
 }
 
+.drawer-body {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.gap-control {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.slider-sidebar {
+    min-width: 180px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+}
+
+.slider-sidebar .gap-control {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.slider-sidebar label {
+    font-size: 14px;
+    text-align: center;
+}
+
+.vertical-slider-wrapper {
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vertical-slider {
+    width: 140px;
+    transform: rotate(-90deg);
+    appearance: none;
+    height: 8px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ddd, #bbb);
+    box-shadow: inset 0 0 2px rgb(0 0 0 / 20%);
+}
+
+.vertical-slider:focus {
+    outline: none;
+    box-shadow: 0 0 4px rgb(66 185 131 / 80%);
+}
+
+.vertical-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 25%);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vertical-slider::-webkit-slider-thumb:hover,
+.vertical-slider::-webkit-slider-thumb:active {
+    transform: scale(1.08);
+    box-shadow: 0 3px 8px rgb(0 0 0 / 35%);
+}
+
+.vertical-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border: 2px solid var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgb(0 0 0 / 25%);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vertical-slider::-moz-range-thumb:hover,
+.vertical-slider::-moz-range-thumb:active {
+    transform: scale(1.08);
+    box-shadow: 0 3px 8px rgb(0 0 0 / 35%);
+}
+
 /* Legend */
 .legend {
     display: flex;

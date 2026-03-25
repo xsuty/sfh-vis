@@ -35,6 +35,7 @@ export function initAppState() {
         newKeyInput: ref(null),
         drawerOpen: ref(false),
         drawerHeight: ref(window.innerHeight / 2),
+        fixRankGap: ref(C.BASIC_FIX_RANK_GAP),
         ctx: canvas.getContext('2d'),
         fixListCollapsedSections: ref(Object.fromEntries(C.FIX_LIST_SECTIONS.map(section => [section, false]))),
         getHeap,

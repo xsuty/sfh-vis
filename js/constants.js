@@ -31,6 +31,10 @@ export const BASIC_FIX_Y = 200;
 export const ADVANCED_FIX_Y = 300;
 export const RANK_X = 50;
 export const RANK_Y = 80;
+export const BASIC_FIX_RANK_GAP = BASIC_FIX_Y - RANK_Y;
+export const ADVANCED_FIX_RANK_GAP = ADVANCED_FIX_Y - RANK_Y;
+export const FIX_RANK_GAP_MIN = 120;
+export const FIX_RANK_GAP_MAX = 1000;
 export const X_STEP = 150;
 export const WRAP_STUB_LENGTH = 20;
 

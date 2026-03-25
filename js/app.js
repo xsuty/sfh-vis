@@ -64,20 +64,22 @@ createApp({
             });
         }
 
-        function renderCy() {
+        function renderCy(options = {}) {
             if (!heapCy) throw new Error('heapCy not initialized');
             renderHeap(appState, heapCy, listsCy);
             if (appState.drawerOpen.value) {
                 if (!listsCy) throw new Error('listsCy not initialized');
                 const heap = appState.getCurrentHeap();
                 if (!heap) throw new Error('incorrect heap index');
-                nextTick(() => renderLists(heap, appState.advancedView, appState.selectedNode, appState.ctx, listsCy, {
-                    collapsedSections: appState.fixListCollapsedSections.value
-                }));
+                nextTick(() => renderLists(heap, appState.advancedView, appState.ctx, listsCy, {
+                    collapsedSections: appState.fixListCollapsedSections.value,
+                    rankListGap: appState.fixRankGap.value
+                }, options));
             }
         }
 
-        watch(() => appState.advancedView.value, renderCy);
+        watch(() => appState.advancedView.value, () => renderCy({ fit: true }));
+        watch(() => appState.fixRankGap.value, () => renderCy({ fit: false }));
         watch(() => appState.fixListCollapsedSections.value, renderCy, {
             deep: true
         });
@@ -121,7 +123,9 @@ createApp({
             ...ui,
             fixListSections: C.FIX_LIST_SECTIONS,
             toggleFixListSection,
-            MAX_HEAPS: C.MAX_HEAPS
+            MAX_HEAPS: C.MAX_HEAPS,
+            FIX_RANK_GAP_MIN: C.FIX_RANK_GAP_MIN,
+            FIX_RANK_GAP_MAX: C.FIX_RANK_GAP_MAX
         };
     }
 }).mount('#app');

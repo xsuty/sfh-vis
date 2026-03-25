@@ -146,9 +146,10 @@ export function renderHeap(appState, heapCy) {
     heapCy.fit(undefined, C.HEAP_PADDING);
 }
 
-export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixListConfig = {}) {
+export function renderLists(heap, advancedView, ctx, listsCy, fixListConfig = {}, options = {}) {
     if (!listsCy) throw new Error('listsCy not initialized');
 
+    const { fit = true } = options;
     const collapsedSections = fixListConfig.collapsedSections || {};
 
     listsCy.elements().remove();
@@ -160,7 +161,7 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixL
 
     const fixBounds = getXBounds(fixElements);
     const rankOffset = getRankOffset(fixBounds, getRankCount(heap));
-    const rankElements = createRankList(advancedView, heap, rankOffset);
+    const rankElements = createRankList(advancedView, heap, rankOffset, fixListConfig.rankListGap);
 
     assertNoDuplicateIds([...fixElements, ...rankElements]);
     listsCy.add([...fixElements, ...rankElements]);
@@ -175,7 +176,9 @@ export function renderLists(heap, advancedView, selectedNode, ctx, listsCy, fixL
         });
     }
 
-    listsCy.fit(undefined, C.LISTS_PADDING);
+    if (fit) {
+        listsCy.fit(undefined, C.LISTS_PADDING);
+    }
 }
 
 // === Internal Rendering Helpers ===
@@ -410,10 +413,15 @@ function appendFixListNode(elements, currentNode, section, fixY, index, startNod
     return currentNode._next;
 }
 
-function createRankList(advancedView, heap, xOffset = 0) {
+function createRankList(advancedView, heap, xOffset = 0, rankListGap) {
     const elements = [];
     let r = heap._rankList;
     let j = 0;
+
+    const fixY = advancedView.value ? C.ADVANCED_FIX_Y : C.BASIC_FIX_Y;
+    const defaultGap = advancedView.value ? C.ADVANCED_FIX_RANK_GAP : C.BASIC_FIX_RANK_GAP;
+    const gap = (typeof rankListGap === 'number') ? rankListGap : defaultGap;
+    const rankY = fixY - gap;
 
     while (r) {
         elements.push({
@@ -424,7 +432,7 @@ function createRankList(advancedView, heap, xOffset = 0) {
             classes: 'rank',
             position: {
                 x: C.RANK_X + j * C.X_STEP + xOffset,
-                y: C.RANK_Y
+                y: rankY
             },
             grabbable: false
         });
