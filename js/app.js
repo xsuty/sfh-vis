@@ -40,6 +40,11 @@ createApp({
 
         let heapCy = null;
         let listsCy = null;
+        let skipNextGapRender = false;
+
+        function defaultFixRankGap(isAdvanced) {
+            return isAdvanced ? C.ADVANCED_FIX_RANK_GAP : C.BASIC_FIX_RANK_GAP;
+        }
 
         function initHeapCy(container) {
             heapCy = cytoscape({
@@ -71,15 +76,35 @@ createApp({
                 if (!listsCy) throw new Error('listsCy not initialized');
                 const heap = appState.getCurrentHeap();
                 if (!heap) throw new Error('incorrect heap index');
+                const activeDefaultGap = defaultFixRankGap(appState.advancedView.value);
+                const rankListGap = appState.fixRankGap.value === activeDefaultGap ? undefined : appState.fixRankGap.value;
                 nextTick(() => renderLists(heap, appState.advancedView, appState.ctx, listsCy, {
                     collapsedSections: appState.fixListCollapsedSections.value,
-                    rankListGap: appState.fixRankGap.value
+                    rankListGap
                 }, options));
             }
         }
 
-        watch(() => appState.advancedView.value, () => renderCy({ fit: true }));
-        watch(() => appState.fixRankGap.value, () => renderCy({ fit: false }));
+        watch(() => appState.advancedView.value, (isAdvanced, wasAdvanced) => {
+            const previousDefault = defaultFixRankGap(wasAdvanced);
+            const nextDefault = defaultFixRankGap(isAdvanced);
+
+            // Keep user custom value; only switch when the gap was still at the prior mode default.
+            if (appState.fixRankGap.value === previousDefault) {
+                skipNextGapRender = true;
+                appState.fixRankGap.value = nextDefault;
+            }
+
+            renderCy({ fit: true });
+        });
+
+        watch(() => appState.fixRankGap.value, () => {
+            if (skipNextGapRender) {
+                skipNextGapRender = false;
+                return;
+            }
+            renderCy({ fit: false });
+        });
         watch(() => appState.fixListCollapsedSections.value, renderCy, {
             deep: true
         });
