@@ -47,6 +47,15 @@ export function getHeapManager(appState, stepsManager, renderCy) {
     function deleteHeap(index) {
         if (isBusy()) throw new Error('state inconsistency: should not be able to delete heaps while busy');
         if (appState.getHeapCount() === 1) throw new Error('state inconsistency: should not be able to delete the last heap');
+
+        const heapToDelete = appState.getHeap(index);
+        if (!heapToDelete.empty()) {
+            const confirmed = confirm(
+                'Warning: deleting a non-empty heap will permanently remove all its nodes. Do you want to continue?'
+            );
+            if (!confirmed) return;
+        }
+
         appState.heaps.value.splice(index, 1);
         if (appState.currentHeapIndex.value >= appState.getHeapCount()) {
             appState.currentHeapIndex.value = appState.getHeapCount() - 1;
