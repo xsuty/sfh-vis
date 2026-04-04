@@ -1,16 +1,32 @@
 const {
-    ref
+    ref,
+    computed
 } = Vue
 
 export function getStepsManager(renderCy) {
     const pendingSteps = ref([]);
-    const stepLogs = ref([]);
+    const heapStepLogs = ref({});
+    const currentHeapId = ref(null);
     const stepIndex = ref(0);
     const stepping = ref(false);
     const levelCounts = ref([])
 
+    const stepLogs = computed(() => {
+        if (currentHeapId.value == null) return [];
+        return heapStepLogs.value[currentHeapId.value] || [];
+    });
+
+    function setActiveHeapId(heapId) {
+        if (heapId == null) throw new Error('Heap id must be provided to setActiveHeapId');
+        currentHeapId.value = heapId;
+        if (!heapStepLogs.value[heapId]) {
+            heapStepLogs.value[heapId] = [];
+        }
+    }
+
     function startSteps(steps) {
         if (!steps || steps.length === 0) throw new Error("No steps provided to startSteps");
+        if (currentHeapId.value == null) throw new Error('Cannot start steps without an active heap id');
         pendingSteps.value = steps.map(s => ({
             ...s,
             level: 0,
@@ -19,7 +35,7 @@ export function getStepsManager(renderCy) {
         levelCounts.value = [];
         stepIndex.value = 0;
         stepping.value = true;
-        stepLogs.value = [];
+        heapStepLogs.value[currentHeapId.value] = [];
         nextStep();
     }
 
@@ -51,7 +67,7 @@ export function getStepsManager(renderCy) {
         step.indexPath = [...step.indexPath, index];
 
         if (step.label) {
-            stepLogs.value.push({
+            heapStepLogs.value[currentHeapId.value].push({
                 text: `${step.indexPath.join('.')} ${step.label}`,
                 level: step.level
             });
@@ -83,6 +99,7 @@ export function getStepsManager(renderCy) {
         stepping,
         startSteps,
         nextStep,
-        skipSteps
+        skipSteps,
+        setActiveHeapId
     };
 }

@@ -38,6 +38,8 @@ createApp({
         const heapManager = getHeapManager(appState, stepsManager, renderCy);
         const ui = getUIComputed(appState, heapManager, stepsManager);
 
+        stepsManager.setActiveHeapId(appState.getCurrentHeap()._heapId);
+
         let heapCy = null;
         let listsCy = null;
         let skipNextGapRender = false;

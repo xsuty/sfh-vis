@@ -29,6 +29,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
             return;
         }
         appState.currentHeapIndex.value = index;
+        stepsManager.setActiveHeapId(appState.heaps.value[index]._heapId);
         renderCy();
     }
 
@@ -39,6 +40,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         newHeap._heapId = nextHeapId.value++;
         appState.heaps.value.push(newHeap);
         appState.currentHeapIndex.value = appState.getHeapCount() - 1;
+        stepsManager.setActiveHeapId(newHeap._heapId);
         renderCy();
     }
 
@@ -49,6 +51,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         if (appState.currentHeapIndex.value >= appState.getHeapCount()) {
             appState.currentHeapIndex.value = appState.getHeapCount() - 1;
         }
+        stepsManager.setActiveHeapId(appState.getCurrentHeap()._heapId);
         renderCy();
     }
 
@@ -112,6 +115,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         appState.heaps.value.splice(removeIndex, 1);
 
         appState.currentHeapIndex.value = keepIndex;
+        stepsManager.setActiveHeapId(activeHeap._heapId);
 
         mergeState.value.mode = false;
         mergeState.value.first = null;
