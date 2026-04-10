@@ -123,7 +123,7 @@ export function renderHeap(appState, heapCy) {
                 label: formatHeapNodeLabel(n, appState.advancedView.value),
                 bgColor: nodeColor(n)
             },
-            grabbable: !appState.advancedView.value
+            grabbable: false
         });
     }
 
