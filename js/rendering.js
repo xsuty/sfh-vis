@@ -149,7 +149,9 @@ export function renderHeap(appState, heapCy) {
 export function renderLists(heap, advancedView, ctx, listsCy, fixListConfig = {}, options = {}) {
     if (!listsCy) throw new Error('listsCy not initialized');
 
-    const { fit = true } = options;
+    const {
+        fit = true
+    } = options;
     const collapsedSections = fixListConfig.collapsedSections || {};
 
     listsCy.elements().remove();

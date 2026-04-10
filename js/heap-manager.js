@@ -133,6 +133,12 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         stepsManager.startSteps(steps);
     }
 
+    function cancelMerge() {
+        mergeState.value.mode = false;
+        mergeState.value.first = null;
+        mergeState.value.second = null;
+    }
+
     function insert() {
         if (isBusy()) throw new Error('state inconsistency: should not be able to insert while busy');
         if (inputValue.value == null) {
@@ -286,6 +292,7 @@ export function getHeapManager(appState, stepsManager, renderCy) {
         addHeap,
         deleteHeap,
         meldHeaps,
+        cancelMerge,
         insert,
         removeMin,
         decreaseKey,

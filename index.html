@@ -30,7 +30,8 @@
             <input type="number" placeholder="New key to insert" v-model.number="inputValue" step="1" autocomplete="off" inputmode="numeric" pattern="-?\d*" />
             <button @click="insert" :disabled="!canInsert">Insert</button>
             <button @click="removeMin" :disabled="!canDeleteMin">Delete-min</button>
-            <button @click="meldHeaps" :disabled="!canMeldHeaps">Meld Heaps</button>
+            <button @click="meldHeaps" :disabled="!canMeldHeaps" v-if="!mergeState.mode">Meld Heaps</button>
+            <button @click="cancelMerge" v-else>Cancel Merge</button>
             <button @click="nextStep" :disabled="!stepping">Next step</button>
             <button @click="skipSteps" :disabled="!stepping">Skip steps</button>
         </div>

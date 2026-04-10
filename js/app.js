@@ -97,7 +97,9 @@ createApp({
                 appState.fixRankGap.value = nextDefault;
             }
 
-            renderCy({ fit: true });
+            renderCy({
+                fit: true
+            });
         });
 
         watch(() => appState.fixRankGap.value, () => {
@@ -105,7 +107,9 @@ createApp({
                 skipNextGapRender = false;
                 return;
             }
-            renderCy({ fit: false });
+            renderCy({
+                fit: false
+            });
         });
         watch(() => appState.fixListCollapsedSections.value, renderCy, {
             deep: true
