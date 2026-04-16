@@ -50,7 +50,7 @@ h1 {
 button {
     padding: 6px 12px;
     font-size: 16px;
-    margin-left: 5px;
+    margin: 0;
     cursor: pointer;
 }
 
@@ -74,31 +74,87 @@ input {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     width: 100%;
-}
-
-.header-bar label {
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.header-bar input {
-    margin-right: 5px;
 }
 
 /* Controls */
 .controls {
     margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.controls input {
+    flex: 0 1 320px;
+    width: min(100%, 320px);
+    min-width: 160px;
+}
+
+.switch-control {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    color: #2f3a33;
+    margin-bottom: 6px;
+}
+
+.switch-control input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.switch-slider {
+    width: 44px;
+    height: 24px;
+    border-radius: 999px;
+    background: #c7ced4;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.switch-slider::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 25%);
+    transition: transform 0.2s ease;
+}
+
+.switch-control input:checked+.switch-slider {
+    background: var(--accent);
+}
+
+.switch-control input:checked+.switch-slider::after {
+    transform: translateX(20px);
+}
+
+.switch-control input:focus-visible+.switch-slider {
+    outline: 2px solid rgb(66 185 131 / 55%);
+    outline-offset: 2px;
 }
 
 /* Tabs */
 .heap-tabs {
     margin-bottom: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .tab-btn {
-    margin-right: 5px;
     border: 1px solid var(--border);
     background: var(--bg-muted);
 }
@@ -371,4 +427,146 @@ input {
 
 .legend-color.blue {
     background-color: blue;
+}
+
+@media (width <=1050px) {
+    .main-vis-container {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    #heap-cy {
+        min-height: 360px;
+    }
+
+    .step-log,
+    .legend {
+        width: 100%;
+    }
+
+    .step-log {
+        max-height: 260px;
+    }
+
+    .legend {
+        order: -1;
+        flex-flow: row wrap;
+        gap: 10px 16px;
+    }
+
+    .legend-item {
+        margin-bottom: 0;
+    }
+
+    .drawer {
+        max-height: 75vh;
+    }
+
+    .drawer.open {
+        overflow-y: auto;
+    }
+
+    .drawer-body {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .slider-sidebar {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .vertical-slider-wrapper {
+        height: 72px;
+    }
+
+    .vertical-slider {
+        width: 100%;
+        transform: none;
+    }
+}
+
+@media (width <=700px) {
+    #app {
+        padding: 10px;
+    }
+
+    .header-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    h1 {
+        margin-bottom: 0;
+        font-size: clamp(1.2rem, 5.6vw, 1.6rem);
+    }
+
+    .controls button,
+    .heap-tabs button {
+        flex: 1 1 calc(50% - 8px);
+        min-height: 40px;
+    }
+
+    .controls input {
+        flex-basis: 100%;
+        width: 100%;
+        max-width: none;
+    }
+
+    .switch-control {
+        background: #f3f6f5;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 6px 10px;
+    }
+
+    .main-vis-container {
+        flex-direction: column;
+        gap: 12px;
+        flex: none;
+        min-height: auto;
+    }
+
+    .step-log,
+    .legend {
+        width: 100%;
+    }
+
+    .step-log {
+        max-height: 260px;
+    }
+
+    .legend {
+        order: -1;
+    }
+
+    #heap-cy {
+        min-height: 300px;
+        flex: none;
+    }
+
+    .drawer {
+        max-height: 70vh;
+    }
+
+    .drawer-body {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .slider-sidebar {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .vertical-slider-wrapper {
+        height: 72px;
+    }
+
+    .vertical-slider {
+        width: 100%;
+        transform: none;
+    }
 }

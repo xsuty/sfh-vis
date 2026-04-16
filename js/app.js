@@ -51,6 +51,7 @@ createApp({
         function initHeapCy(container) {
             heapCy = cytoscape({
                 container,
+                minZoom: 0.05,
                 maxZoom: 4,
                 style: HEAP_CY_STYLE,
                 layout: {
@@ -63,6 +64,7 @@ createApp({
             if (listsCy) throw new Error('listsCy already initialized');
             listsCy = cytoscape({
                 container,
+                minZoom: 0.05,
                 maxZoom: 4,
                 style: LISTS_CY_STYLE,
                 layout: {

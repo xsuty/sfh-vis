@@ -18,9 +18,10 @@
         <!-- ===== Header ===== -->
         <div class="header-bar">
             <h1>Strict Fibonacci Heap Visualizer</h1>
-            <label>
-                <input type="checkbox" v-model="advancedView" />
-                Advanced View
+            <label class="switch-control" for="advanced-view-toggle">
+                <span class="switch-label">Advanced View</span>
+                <input id="advanced-view-toggle" type="checkbox" v-model="advancedView" />
+                <span class="switch-slider" aria-hidden="true"></span>
             </label>
         </div>
         <!-- ===== Status ===== -->
