@@ -368,7 +368,7 @@ function appendCollapsedSection(elements, heap, currentNode, section, fixY, inde
         classes: isSingle ? 'single-prev' : isFirstSection ? 'wrap wrap-prev' : ''
     });
 
-    const next = currentNode.getNextSection(section);
+    const next = currentNode.getNextSection(section, heap);
     const nextSection = next.section();
     const nextTarget = collapsedSections[nextSection] ? `placeholder-${nextSection}` : `fix-${next._id}`;
 

@@ -1287,7 +1287,7 @@ class Node {
         const heap = this.heap();
         var head = heap[section];
         heap[section] = this;
-        if (head === null) head = this.getNextSection(section);
+        if (head === null) head = this.getNextSection(section, heap);
         head.addPrev(this);
     }
 
@@ -1545,13 +1545,13 @@ class Node {
         this._prev = node;
     }
 
-    getNextSection(current) {
+    getNextSection(current, heap) {
         if (!Heap.FIX_LIST_SECTIONS.includes(current)) throw new Error('invalid section');
         const list = Heap.FIX_LIST_SECTIONS;
         const startIdx = (list.indexOf(current) + 1) % list.length;
         for (let i = 0; i < list.length; i++) {
             const idx = (startIdx + i) % list.length;
-            const value = this.heap()[list[idx]];
+            const value = heap[list[idx]];
             if (value !== null) {
                 return value;
             }
