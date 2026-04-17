@@ -58,7 +58,10 @@ An interactive web-based visualization tool for understanding and experimenting 
    python -m http.server 8000
    ```
 
-4. **Open in browser**: Navigate to `http://localhost:8000` (or the address shown by http-server)
+4. **Open in browser**: Navigate to the address shown by your web server output
+
+   - `npm run dev` and `npx http-server` typically use `http://localhost:8080`
+   - `python -m http.server 8000` uses `http://localhost:8000`
 
 > **Important**: The application uses ES6 modules which require a web server. Opening `index.html` directly in the browser will not work.
 
@@ -121,7 +124,7 @@ Visit <https://xsuty.github.io/sfh-vis/> - no installation needed!
 - Use **"Import Heap"** to restore a previously saved state
 - Useful for sharing specific heap configurations or testing
 
-**Status Bar**: Watch the status display for operation feedback and step count information
+**Status Bar**: Watch the status display for the current app mode (idle, stepping, or merge selection). Detailed step progression appears in the Step Log.
 
 ## Project Structure
 
@@ -202,10 +205,10 @@ This application works in all modern browsers supporting:
 
 Tested on:
 
-- Chrome/Chromium (latest)
-- Firefox (latest)
-- Safari (latest)
-- Edge (latest)
+- Chrome (desktop & android)
+- Opera
+- Firefox
+- Edge
 
 ## Troubleshooting
 
@@ -244,7 +247,7 @@ Please open an issue on GitHub with:
 3. Make your changes
 4. Run `npm run lint` to check code quality
 5. Run `npm run test:heap` to verify heap behavior
-6. Commit with clear messages (`git commit -am 'Add feature'`)
+6. Stage and commit with clear messages (`git add . && git commit -m 'Add feature'`)
 7. Push to your fork
 8. Create a Pull Request with a description of your changes
 
