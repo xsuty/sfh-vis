@@ -5,6 +5,11 @@ export function setupNodeClick(cy, appState, isBusy) {
     cy.on('tap', 'node', (evt) => {
         if (isBusy()) return;
 
+        if (appState.ignoreNodeClick.value) {
+            appState.ignoreNodeClick.value = false;
+            return;
+        }
+
         const nodeId = evt.target.id();
         const heapNode = appState.nodesById[nodeId];
         if (!heapNode) throw new Error('Clicked node not found in nodesById');
@@ -17,26 +22,38 @@ export function setupNodeClick(cy, appState, isBusy) {
 }
 
 export function setupNodeInspect(cy, appState) {
-    let lockedInspectNodeId = null;
-
     cy.on('mouseover', 'node', (evt) => {
-        if (lockedInspectNodeId) return;
+        if (appState.inspectMode.value) return;
         applyInspectFocus(cy, appState, evt.target.id());
     });
 
     cy.on('mouseout', 'node', () => {
-        if (lockedInspectNodeId) return;
+        if (appState.inspectMode.value) return;
         applyInspectFocus(cy, appState, null);
     });
 
     cy.on('cxttap', 'node', (evt) => {
+        if (!appState.advancedView.value) return;
         const nodeId = evt.target.id();
-        lockedInspectNodeId = nodeId;
+        appState.inspectMode.value = true;
+        applyInspectFocus(cy, appState, nodeId);
+    });
+
+    cy.on('taphold', 'node', (evt) => {
+        if (!appState.advancedView.value) return;
+        const nodeId = evt.target.id();
+        appState.inspectMode.value = true;
+        appState.ignoreTap.value = true;
+        appState.ignoreNodeClick.value = true;
         applyInspectFocus(cy, appState, nodeId);
     });
 
     cy.on('tap', () => {
-        lockedInspectNodeId = null;
+        if (appState.ignoreTap.value) {
+            appState.ignoreTap.value = false;
+            return;
+        }
+        appState.inspectMode.value = false;
         applyInspectFocus(cy, appState, null);
     });
 }

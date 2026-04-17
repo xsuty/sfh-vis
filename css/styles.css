@@ -225,9 +225,14 @@ input {
 .modal-content {
     background: #fff;
     padding: 20px;
-    width: 250px;
+    width: min(250px, calc(100vw - 24px));
     border-radius: 6px;
     text-align: center;
+}
+
+.modal-content input {
+    width: 100%;
+    max-width: 100%;
 }
 
 #close-modal {

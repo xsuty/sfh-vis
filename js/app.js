@@ -75,7 +75,12 @@ createApp({
 
         function renderCy(options = {}) {
             if (!heapCy) throw new Error('heapCy not initialized');
-            renderHeap(appState, heapCy, listsCy);
+            const {
+                justLists = false
+            } = options;
+            if (!justLists) {
+                renderHeap(appState, heapCy, listsCy);
+            }
             if (appState.drawerOpen.value) {
                 if (!listsCy) throw new Error('listsCy not initialized');
                 const heap = appState.getCurrentHeap();
@@ -113,16 +118,24 @@ createApp({
                 fit: false
             });
         });
-        watch(() => appState.fixListCollapsedSections.value, renderCy, {
+        watch(() => appState.fixListCollapsedSections.value, () => {
+            appState.inspectMode.value = false;
+            renderCy({
+                justLists: true
+            })
+        }, {
             deep: true
         });
 
         watch(() => appState.drawerOpen.value, (open) => {
+            appState.inspectMode.value = false;
             if (open) {
                 if (!listsCy) throw new Error('listsCy not initialized');
                 listsCy.resize();
                 listsCy.fit(undefined, C.LISTS_PADDING);
-                renderCy();
+                renderCy({
+                    justLists: true,
+                });
             }
         });
 
