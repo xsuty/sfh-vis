@@ -124,10 +124,13 @@ export function renderHeap(appState, heapCy) {
     Object.keys(appState.nodesById).forEach(k => delete appState.nodesById[k]);
     if (!heap._root) return;
 
+    const disconnectedNodes = getDisconnectedNodes(heap);
+    const renderRoots = [heap._root, ...disconnectedNodes];
+
     const {
         nodes,
         edges
-    } = collectNodes(appState.advancedView, heap._root);
+    } = collectNodes(appState.advancedView, renderRoots);
     const elements = [];
 
     for (const n of nodes) {
@@ -153,8 +156,10 @@ export function renderHeap(appState, heapCy) {
     fitTextIntoNode(heapCy, appState.ctx);
 
     const nodeSep = appState.advancedView.value ? C.ADVANCED_NODE_SEP : C.BASIC_NODE_SEP;
+    const rootSep = appState.advancedView.value ? C.ADVANCED_ROOT_SEP : C.BASIC_ROOT_SEP;
     const rankSep = appState.advancedView.value ? C.ADVANCED_RANK_SEP : C.BASIC_RANK_SEP;
-    layoutTree(heap, heapCy, nodeSep, rankSep);
+    layoutForest(renderRoots, heapCy, nodeSep, rootSep, rankSep);
+    addRootLabels(heapCy, appState.ctx, heap._root, [...disconnectedNodes]);
 
     heapCy.edges('.wrap').forEach(edge => {
         setSegmentWeights(edge);
@@ -222,7 +227,7 @@ function getRankOffset(fixBounds, rankCount) {
     return fixCenter - rankCenter;
 }
 
-function collectNodes(advancedView, root) {
+function collectNodes(advancedView, roots) {
     const nodes = [];
     const edges = [];
 
@@ -284,7 +289,10 @@ function collectNodes(advancedView, root) {
         }
     }
 
-    if (root) dfs(root, true, true);
+    roots.forEach(root => {
+        dfs(root, true, true);
+    });
+
     return {
         nodes,
         edges
@@ -621,37 +629,164 @@ function getFixSections(heap, collapsedSections) {
     };
 }
 
-function layoutTree(heap, heapCy, nodeSep, rankSep) {
-    function subtreeWidth(node) {
+function layoutForest(roots, heapCy, nodeSep, rootSep, rankSep) {
+    function subtreeWidth(node, path = new Set()) {
+        if (!node) return C.NODE_SIZE;
+        if (path.has(node)) return C.NODE_SIZE;
+
+        const nextPath = new Set(path);
+        nextPath.add(node);
+
         const c = node.children();
         if (c.length === 0) return C.NODE_SIZE;
-        const total = c.reduce((sum, child) => sum + subtreeWidth(child), 0) + (c.length - 1) * nodeSep;
+        const total = c.reduce((sum, child) => sum + subtreeWidth(child, nextPath), 0) + (c.length - 1) * nodeSep;
         return Math.max(C.NODE_SIZE, total);
     }
 
     const positions = {};
+    const placed = new Set();
 
-    function place(node, centerX, y) {
+    function place(node, centerX, y, path = new Set()) {
+        if (!node) return;
+        if (placed.has(node)) return;
+        if (path.has(node)) return;
+
+        const nextPath = new Set(path);
+        nextPath.add(node);
+
+        placed.add(node);
         positions[`n${node._id}`] = {
             x: centerX,
             y
         };
-        const c = node.children();
+
+        const c = node.children().filter(child => !placed.has(child));
         if (c.length === 0) return;
-        const totalW = c.reduce((sum, child) => sum + subtreeWidth(child), 0) + (c.length - 1) * nodeSep;
+
+        const totalW = c.reduce((sum, child) => sum + subtreeWidth(child, nextPath), 0) + (c.length - 1) * nodeSep;
         let x = centerX - totalW / 2;
         for (const child of c) {
-            const w = subtreeWidth(child);
-            place(child, x + w / 2, y + C.NODE_SIZE + rankSep);
+            const w = subtreeWidth(child, nextPath);
+            place(child, x + w / 2, y + C.NODE_SIZE + rankSep, nextPath);
             x += w + nodeSep;
         }
     }
 
-    place(heap._root, 0, 0);
+    if (roots.length === 0) return;
+
+    const widths = roots.map(root => subtreeWidth(root));
+    const totalWidth = widths.reduce((sum, width) => sum + width, 0) + rootSep * (roots.length - 1);
+    let cursor = -totalWidth / 2;
+
+    roots.forEach((root, i) => {
+        const width = widths[i];
+        const centerX = cursor + width / 2;
+        place(root, centerX, 0);
+        cursor += width + rootSep;
+    });
+
     heapCy.nodes().forEach(n => {
         const pos = positions[n.id()];
         if (pos) n.position(pos);
     });
+}
+
+function getDisconnectedNodes(heap) {
+    const root = heap._root;
+    const disconnectedNodes = new Set();
+
+    if (root) {
+        const head = heap.fixListHead();
+        let first = head;
+        do {
+            if (!first._parent && first !== root) {
+                disconnectedNodes.add(first);
+            }
+            first = first._next;
+        } while (first !== head)
+    }
+
+    return disconnectedNodes;
+}
+
+function addRootLabels(heapCy, ctx, realRoot, disconnectedNodes) {
+    if (!heapCy || !ctx || !realRoot) return;
+
+    const labels = [{
+            root: realRoot,
+            text: C.ROOT_LABEL_HEAP_TEXT,
+            classes: 'root-label root-label-heap'
+        },
+        ...disconnectedNodes.map(virtualRoot => ({
+            root: virtualRoot,
+            text: C.ROOT_LABEL_CUT_TEXT,
+            classes: 'root-label root-label-cut'
+        }))
+    ];
+
+    const placed = [];
+    const elements = [];
+    const lineHeight = C.ROOT_LABEL_FONT_SIZE + 2;
+
+    ctx.font = `${C.ROOT_LABEL_FONT_SIZE}px Arial`;
+
+    labels.forEach(({
+        root,
+        text,
+        classes
+    }) => {
+        const rootElement = heapCy.getElementById(`n${root._id}`);
+        if (rootElement.empty()) return;
+
+        const rootPos = rootElement.position();
+        const width = Math.ceil(ctx.measureText(text).width + C.ROOT_LABEL_HORIZONTAL_PADDING * 2);
+        const height = lineHeight;
+        const topOfNode = rootPos.y - C.NODE_SIZE / 2;
+        const x = rootPos.x;
+        let y = topOfNode - C.ROOT_LABEL_VERTICAL_GAP - height / 2;
+
+        while (placed.some(rect => rectanglesOverlap(rect, {
+                left: x - width / 2,
+                right: x + width / 2,
+                top: y - height / 2,
+                bottom: y + height / 2
+            }))) {
+            y -= lineHeight + C.ROOT_LABEL_STACK_STEP;
+        }
+
+        placed.push({
+            left: x - width / 2,
+            right: x + width / 2,
+            top: y - height / 2,
+            bottom: y + height / 2
+        });
+
+        elements.push({
+            data: {
+                id: `root-label-${root._id}`,
+                label: text,
+                bgColor: 'transparent',
+                width,
+                height
+            },
+            classes,
+            position: {
+                x,
+                y
+            },
+            grabbable: false,
+            selectable: false,
+            locked: true,
+        });
+    });
+
+    if (elements.length > 0) {
+        heapCy.add(elements);
+    }
+}
+
+function rectanglesOverlap(a, b) {
+    return !(a.right <= b.left || a.left >= b.right || a.bottom <= b.top || a.top >= b.bottom);
 }
 
 function assertNoDuplicateIds(elements) {

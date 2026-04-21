@@ -20,9 +20,17 @@ export const FIX_LIST_SECTIONS = [
 // Heap rendering
 export const HEAP_PADDING = 40;
 export const BASIC_NODE_SEP = 15;
+export const BASIC_ROOT_SEP = 70;
 export const BASIC_RANK_SEP = 40;
 export const ADVANCED_NODE_SEP = 50;
+export const ADVANCED_ROOT_SEP = 70;
 export const ADVANCED_RANK_SEP = 60;
+export const ROOT_LABEL_HEAP_TEXT = 'Heap Root';
+export const ROOT_LABEL_CUT_TEXT = 'Disconnected Subtree';
+export const ROOT_LABEL_VERTICAL_GAP = 12;
+export const ROOT_LABEL_STACK_STEP = 16;
+export const ROOT_LABEL_HORIZONTAL_PADDING = 8;
+export const ROOT_LABEL_FONT_SIZE = 12;
 
 // Lists rendering
 export const LISTS_PADDING = 50;

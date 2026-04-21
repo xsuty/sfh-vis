@@ -166,7 +166,7 @@ export class Heap {
         const minKey = Number.NEGATIVE_INFINITY;
         if (node._key !== minKey) {
             steps.push({
-                label: `Decrease key of node ${node._key} to negative infinity`,
+                label: `Decrease key`,
                 nest: true,
                 apply: () => this.decreaseKey(node, minKey)
             });

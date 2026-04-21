@@ -11,6 +11,33 @@ export const HEAP_CY_STYLE = [
             'text-wrap': 'wrap',
         },
     },
+    {
+        selector: 'node.root-label',
+        style: {
+            shape: 'roundrectangle',
+            'background-opacity': 0,
+            'border-width': 0,
+            width: 'data(width)',
+            padding: 0,
+            'font-size': 12,
+            'text-valign': 'center',
+            'text-halign': 'center',
+            events: 'no',
+            'z-index': 999,
+        },
+    },
+    {
+        selector: 'node.root-label-heap',
+        style: {
+            color: '#000',
+        },
+    },
+    {
+        selector: 'node.root-label-cut',
+        style: {
+            color: '#000',
+        },
+    },
 
     /* ================= EDGES ================= */
     {
